@@ -2,10 +2,10 @@ package middleware
 
 import (
 	"fmt"
+	. "github.com/Banyango/gifoody_server/model"
+	"github.com/labstack/echo/v4"
 	"net/http"
 	"strconv"
-
-	"github.com/labstack/echo/v4"
 )
 
 type Page struct {
@@ -23,16 +23,6 @@ type Pagination struct {
 	Previous         Link        `json:"previous"`
 }
 
-func (p Pagination) SetLinks(url string) {
-	if p.HasNextPages {
-		pagination.Next = Link{Href: fmt.Sprintf("{0}?offset={1}&limit={2}", url, offset+limit, limit), Method: "GET"}
-	}
-
-	if p.HasPreviousPages {
-		pagination.Previous = Link{Href: fmt.Sprintf("{0}?offset={1}&limit={2}", url, offset-limit, limit), Method: "GET"}
-	}
-}
-
 // https://github.com/expressjs/express-paginate/blob/master/index.js
 
 const PAGINATION = "Pagination"
@@ -41,7 +31,7 @@ func Paginate() echo.MiddlewareFunc {
 	return func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(c echo.Context) (err error) {
 			offset, err := getNumber("offset", 0, c)
-			limit, err := getNumber("limit", 20, c)
+			limit, err := getNumber("limit", 5, c)
 			total, err := getNumber("total", 0, c)
 			hasPrev := offset > 1
 			hasNext := offset < total

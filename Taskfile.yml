@@ -1,0 +1,18 @@
+version: '2'
+
+tasks:
+  build:
+    deps:
+      - clean
+      - mk-dist
+    cmds:
+      - go build -v -i main.go
+  clean:
+    cmds:
+      - rm -rd ./dist
+  mk-dist:
+    cmds:
+      - mkdir dist
+  migrate-db:
+    cmds:
+      - migrate -path migrations/ -database 'mysql://fooduser:foodtest@/food_test {{.DIR}} {{.SCHEMA}}

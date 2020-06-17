@@ -2,14 +2,16 @@ package model
 
 import "time"
 
+// Post model
 type Post struct {
-	Id     string    `json:"id"`
-	Name   string    `json:"name"`
-	Url    string    `json:"url"`
-	UserId string    `json:"user"`
-	Date   time.Time `json:"date"`
+	ID       string    `json:"id"`
+	Name     string    `json:"title"`
+	URL      string    `json:"url"`
+	UserID   string    `json:"user"`
+	PostDate time.Time `json:"date"`
 }
 
+//PostQuery - post queries
 type PostQuery struct {
 	Limit    int
 	Offset   int

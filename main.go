@@ -1,12 +1,39 @@
 package main
 
 import (
+	"github.com/Banyango/gifoody_server/api"
+	"database/sql"
+	_ "github.com/go-sql-driver/mysql"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
-	"github.com/swaggo/echo-swagger"
+	. "net/http"
 )
 
-
 func main() {
-	fmt.Printf("hello")
+
+	e := echo.New()
+
+	e.Use(middleware.LoggerWithConfig(middleware.LoggerConfig{
+		Format: "method=${method}, uri=${uri}, status=${status}\n",
+	}))
+	e.Use(middleware.AddTrailingSlash())
+
+	db, err := sql.Open("mysql", "fooduser:foodtest@/food_test?parseTime=true")
+	defer db.Close()
+
+	if err != nil {
+		panic(err)
+	}
+
+	e.Use(middleware.CORSWithConfig(middleware.CORSConfig{
+		AllowOrigins: []string{"http://api.gifoody.com", "http://localhost:3000"},
+		AllowMethods: []string{MethodGet, MethodPut, MethodPost, MethodDelete, MethodOptions},
+	}))
+
+	api.InitRouter(e, db)
+
+	//e.GET("/swagger/*", echoSwagger.WrapHandler)
+
+	e.Logger.Fatal(e.Start(":3001"))
+
 }

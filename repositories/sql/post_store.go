@@ -1,16 +1,16 @@
 package sql
 
 import (
-	"database/sql"
 	"github.com/Banyango/gifoody_server/model"
 	. "github.com/Banyango/gifoody_server/repositories/util"
+	"github.com/jmoiron/sqlx"
 )
 
 type PostSQLStore struct {
-	db *sql.DB
+	db *sqlx.DB
 }
 
-func NewPostSQLStore(session *sql.DB) *PostSQLStore {
+func NewPostSQLStore(session *sqlx.DB) *PostSQLStore {
 	self := new(PostSQLStore)
 
 	self.db = session

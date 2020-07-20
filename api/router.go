@@ -1,15 +1,15 @@
 package api
 
 import (
-	"database/sql"
 	"github.com/Banyango/gifoody_server/api/controllers"
 	"github.com/Banyango/gifoody_server/constants"
 	"github.com/Banyango/gifoody_server/middleware"
 	"github.com/Banyango/gifoody_server/repositories"
+	"github.com/jmoiron/sqlx"
 	"github.com/labstack/echo/v4"
 )
 
-func InitRouter(echo *echo.Echo, db *sql.DB) {
+func InitRouter(echo *echo.Echo, db *sqlx.DB) {
 	mainGroup := echo.Group(constants.API_PATH)
 
 	// repositories

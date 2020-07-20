@@ -2,8 +2,8 @@ package main
 
 import (
 	"github.com/Banyango/gifoody_server/api"
-	"database/sql"
 	_ "github.com/go-sql-driver/mysql"
+	"github.com/jmoiron/sqlx"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 	. "net/http"
@@ -18,7 +18,7 @@ func main() {
 	}))
 	e.Use(middleware.AddTrailingSlash())
 
-	db, err := sql.Open("mysql", "fooduser:foodtest@/food_test?parseTime=true")
+	db, err := sqlx.Connect("mysql", "fooduser:foodtest@/food_test?parseTime=true")
 	defer db.Close()
 
 	if err != nil {

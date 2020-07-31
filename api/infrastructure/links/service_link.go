@@ -6,6 +6,7 @@ import (
 	"github.com/Banyango/gifoody_server/constants"
 	"github.com/labstack/echo/v4"
 	url2 "net/url"
+	"os"
 	"strings"
 )
 
@@ -36,7 +37,8 @@ func NewLinkBuilder(path string, method string, params []string, ctx echo.Contex
 }
 
 func ParseRequest(ctx echo.Context) (host string, scheme string) {
-	return ctx.Request().Host, ctx.Scheme()
+	h := os.Getenv("HOST")
+	return h, ctx.Scheme()
 }
 
 func ValidateHost(host string) error {

@@ -13,9 +13,11 @@ type IndexResponse struct {
 type IndexLinks struct {
 	Categories model.Link `json:"categories"`
 	Posts      model.Link `json:"posts"`
-	Logout	   model.Link `json:"logout"`
-	Login	   model.Link `json:"login"`
-	Forgot	   model.Link `json:"forgotPassword"`
+	Logout     model.Link `json:"logout"`
+	Login      model.Link `json:"login"`
+	Forgot     model.Link `json:"forgotPassword"`
+	Register   model.Link `json:"register"`
+	Confirm   model.Link `json:"confirm"`
 }
 
 func NewIndexResponse(ctx echo.Context) (IndexResponse, error) {
@@ -44,13 +46,25 @@ func NewIndexResponse(ctx echo.Context) (IndexResponse, error) {
 		return IndexResponse{}, err
 	}
 
+	registerLink, err := links.NewLinkBuilder("register", "post", nil, ctx)
+	if err != nil {
+		return IndexResponse{}, err
+	}
+
+	confirmLink, err := links.NewLinkBuilder("confirm_account", "post", nil, ctx)
+	if err != nil {
+		return IndexResponse{}, err
+	}
+
 	return IndexResponse{
 		IndexLinks: IndexLinks{
 			Categories: categoriesLink.BuildLink(),
 			Posts:      postLink.BuildLink(),
-			Logout: 	logoutLink.BuildLink(),
-			Login:		loginLink.BuildLink(),
-			Forgot:		forgotLink.BuildLink(),
+			Logout:     logoutLink.BuildLink(),
+			Login:      loginLink.BuildLink(),
+			Forgot:     forgotLink.BuildLink(),
+			Register:   registerLink.BuildLink(),
+			Confirm:   confirmLink.BuildLink(),
 		},
 	}, nil
 }

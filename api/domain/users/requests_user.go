@@ -98,7 +98,6 @@ func NewLoginRequestFromContext(c echo.Context) (request *LoginRequest, err erro
 }
 
 type UpdateConfirmAccountRequest struct {
-	Email string
 	Token string
 }
 
@@ -109,7 +108,7 @@ func NewUpdateConfirmAccountRequestFromContext(c echo.Context) (request *UpdateC
 		return nil, err
 	}
 
-	if request.Email == "" || request.Token == "" {
+	if request.Token == "" {
 		return nil, fmt.Errorf("Incorrect Parameters")
 	}
 

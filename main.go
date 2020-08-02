@@ -9,6 +9,7 @@ import (
 	"github.com/labstack/echo/v4/middleware"
 	"log"
 	. "net/http"
+	"time"
 )
 
 func main() {
@@ -25,6 +26,8 @@ func main() {
 	e.Use(middleware.AddTrailingSlash())
 
 	db, err := sqlx.Connect("mysql", "fooduser:foodtest@/food_test?parseTime=true")
+	db.SetMaxIdleConns(0)
+	db.SetConnMaxLifetime(3*time.Second)
 	defer db.Close()
 
 	if err != nil {

@@ -7,6 +7,7 @@ import (
 	. "github.com/Banyango/gifoody_server/api/model"
 	"github.com/Banyango/gifoody_server/api/repositories"
 	"github.com/dgrijalva/jwt-go"
+	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 	"net/http"
 	"time"
@@ -57,7 +58,7 @@ func (self *UserController) PostRegister(c echo.Context) error {
 	}
 
 	userFound := <-self.userRepository.GetUserByEmail(user.Email)
-	if userFound.Err == nil {
+	if userFound.Err != nil {
 		return utils.LogError(err, http.StatusUnauthorized, "Email was already used to sign up...")
 	}
 
@@ -73,6 +74,8 @@ func (self *UserController) PostRegister(c echo.Context) error {
 
 	user.ConfirmToken = token
 	user.Password = hashedPassword
+
+	user.Id = uuid.New().String()
 
 	result := self.userRepository.Save(user)
 	if result.Err != nil {
@@ -126,9 +129,12 @@ func (self *UserController) PostResetPassword(c echo.Context) error {
 		}
 
 		self.emailTokenService.SendForgotEmail(user.Email, id)
+
+		return echo.NewHTTPError(http.StatusCreated, "Password reset sent to your email.")
+	} else {
+		return echo.NewHTTPError(http.StatusConflict, "Email exists.")
 	}
 
-	return echo.NewHTTPError(http.StatusOK, "Password reset sent to your email.")
 }
 
 // PostConfirmResetPassword will verify the id token sent to a user's email
@@ -233,24 +239,19 @@ func (self *UserController) PostConfirmAccount(c echo.Context) error {
 
 	request, err := NewUpdateConfirmAccountRequestFromContext(c)
 	if err != nil {
-		return utils.LogError(err, http.StatusBadRequest, "Enter username/password")
+		return utils.LogError(err, http.StatusBadRequest, "Bad Parameters")
 	}
 
 	token := self.passwordService.HashId(request.Token)
 
-	if userChan := <-self.userRepository.GetUserByEmail(request.Email); userChan.Err == nil {
+	if userChan := <-self.userRepository.GetUserByConfirmToken(token); userChan.Err == nil {
 		user := userChan.Data.(User)
-
-		if user.ConfirmToken == token {
-			user.Verified = true
-			user.ConfirmToken = ""
-			saveResult := <- self.userRepository.Update(user)
-			return saveResult.Err
-		} else {
-			return echo.NewHTTPError(http.StatusInternalServerError, "Server JWT Error")
-		}
+		user.Verified = true
+		user.ConfirmToken = ""
+		saveResult := <- self.userRepository.Update(user)
+		return saveResult.Err
 	} else {
-		return echo.NewHTTPError(http.StatusInternalServerError, "Server JWT Error")
+		return echo.NewHTTPError(http.StatusInternalServerError, "Confirmation error")
 	}
 }
 

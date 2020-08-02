@@ -4,7 +4,6 @@ import (
 	"fmt"
 	. "github.com/Banyango/gifoody_server/api/model"
 	. "github.com/Banyango/gifoody_server/api/repositories/util"
-	"github.com/google/uuid"
 	"github.com/jmoiron/sqlx"
 )
 
@@ -25,7 +24,7 @@ func (self *UserSQLStore) GetUserByEmail(email string) StoreChannel {
 	var storeChan = make(StoreChannel, 1)
 	go func() {
 		user := []User{}
-		err := self.db.Get(user, "SELECT * from user WHERE email = $1", email)
+		err := self.db.Get(user, "SELECT * from user WHERE email = ?", email)
 		storeChan <- StoreResult{
 			Data:  user,
 			Total: 1,
@@ -38,8 +37,8 @@ func (self *UserSQLStore) GetUserByEmail(email string) StoreChannel {
 func (self *UserSQLStore) GetUserByConfirmToken(token string) StoreChannel {
 	var storeChan = make(StoreChannel, 1)
 	go func() {
-		user := []User{}
-		err := self.db.Get(user, "SELECT * from user WHERE confirm_token = $1", token)
+		user := User{}
+		err := self.db.Get(&user, "SELECT * from user WHERE confirm_token = $1", token)
 		storeChan <- StoreResult{
 			Data:  user,
 			Total: 1,
@@ -52,8 +51,8 @@ func (self *UserSQLStore) GetUserByConfirmToken(token string) StoreChannel {
 func (self *UserSQLStore) GetUserById(id string) StoreChannel {
 	var storeChan = make(StoreChannel, 1)
 	go func() {
-		user := []User{}
-		err := self.db.Get(user, "SELECT * from user WHERE id = $1", id)
+		user := User{}
+		err := self.db.Get(&user, "SELECT * from user WHERE id = $1", id)
 		storeChan <- StoreResult{
 			Data:  user,
 			Total: 1,
@@ -111,8 +110,7 @@ func (self *UserSQLStore) SaveForgotUser(user ForgotUser) StoreResult {
 
 func (self *UserSQLStore) Save(user User) StoreResult {
 	tx := self.db.MustBegin()
-	user.Id = uuid.New().String()
-	tx.MustExec("INSERT INTO user (id, first_name, last_name, email, username, password, confirm_token, verified, reset) values (:id, :first_name, :last_name, :email, :username, :password, :confirm_token, :verified, :reset)", &user)
+	tx.Query("INSERT INTO user (id, first_name, last_name, email, username, password, confirm_token, verified, reset) values (?, ?, ?, ?, ?, ?, ?, ?, ?)", user.Id, user.FirstName, user.LastName, user.Email, user.Username, user.Password, user.ConfirmToken, false, false)
 	err := tx.Commit()
 	return StoreResult{
 		Data:  user,

@@ -66,7 +66,7 @@ func (self *EmailTokenService) GenerateRandomASCIIString(length int) (string, er
 }
 
 func (self *EmailTokenService) SendConfirmEmail(email string, id string) (err error) {
-	url := os.Getenv("SERVER_URL")
+	url := os.Getenv("HOST")
 
 	data := struct {
 		Link string
@@ -82,7 +82,7 @@ func (self *EmailTokenService) SendConfirmEmail(email string, id string) (err er
 	}
 
 	mailFromAddress := os.Getenv("MAIL_FROM_ADDRESS")
-	err = self.mailService.SendMail(email, mailFromAddress, "Reset your Password", &buffer)
+	err = self.mailService.SendMail(email, mailFromAddress, "Gifoody: Confirm your account", &buffer)
 	if err != nil {
 		log.Error(err.Error())
 		return echo.NewHTTPError(http.StatusInternalServerError, "Error Sending Confirmation Email")

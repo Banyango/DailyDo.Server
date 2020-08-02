@@ -57,9 +57,9 @@ func (self *UserController) PostRegister(c echo.Context) error {
 		FirstName: request.FirstName,
 	}
 
-	userFound := <-self.userRepository.GetUserByEmailAsync(user.Email)
+	userFound := <-self.userRepository.GetUserByEmailOrUsernameAsync(user.Email, user.Username)
 	if userFound.Err == nil {
-		return utils.LogError(err, http.StatusBadRequest, "Email was already used to sign up...")
+		return utils.LogError(err, http.StatusBadRequest, "Username/Email was already used to sign up...")
 	}
 
 	hashedPassword, err := self.passwordService.HashPassword(request.Password)
@@ -107,7 +107,7 @@ func (self *UserController) PostResetPassword(c echo.Context) error {
 		return utils.LogError(err, http.StatusBadRequest, err.Error())
 	}
 
-	userByEmail := <-self.userRepository.GetUserByEmailAsync(request.Email)
+	userByEmail := <-self.userRepository.GetUserByEmailOrUsernameAsync(request.Email, "")
 	if userByEmail.Err == nil {
 
 		user := userByEmail.Data.(User)
@@ -211,14 +211,18 @@ func (self *UserController) PostLogin(c echo.Context) error {
 		return utils.LogError(err, http.StatusBadRequest, "Enter email/password")
 	}
 
-	userDb := <-self.userRepository.GetUserByEmailAsync(request.Email)
+	userDb := <-self.userRepository.GetUserByEmailOrUsernameAsync(request.Email, "")
 	if userDb.Err != nil {
 		return utils.LogError(err, http.StatusUnauthorized, "Bad email/password")
 	}
 
 	fetchedUser := userDb.Data.(User)
 	if self.passwordService.ComparePassword(request.Password, fetchedUser.Password) {
-		self.jwtService.CreateJWTToken(c, fetchedUser.Id, fetchedUser.Username, fetchedUser.Email, fetchedUser.FirstName, fetchedUser.LastName)
+		err := self.jwtService.CreateJWTToken(c, fetchedUser.Id, fetchedUser.Username, fetchedUser.Email, fetchedUser.FirstName, fetchedUser.LastName)
+		if err != nil {
+			return utils.LogError(err, http.StatusInternalServerError, "JWT error")
+		}
+
 		return c.JSON(200, fetchedUser)
 	} else {
 		return echo.NewHTTPError(http.StatusUnauthorized, "Email or Password incorrect.")

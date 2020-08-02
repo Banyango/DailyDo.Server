@@ -19,12 +19,11 @@ func NewUserSQLStore(session *sqlx.DB) *UserSQLStore {
 	return self
 }
 
-
-func (self *UserSQLStore) GetUserByEmailAsync(email string) StoreChannel {
+func (self *UserSQLStore) GetUserByEmailOrUsernameAsync(email string, username string) StoreChannel {
 	var storeChan = make(StoreChannel, 1)
 	go func() {
 		user := User{}
-		err := self.db.Get(&user, "SELECT * from user WHERE email = ?", email)
+		err := self.db.Get(&user, "SELECT * from user WHERE email = ? OR username = ?", email, username)
 		storeChan <- StoreResult{
 			Data:  user,
 			Total: 1,
@@ -65,9 +64,7 @@ func (self *UserSQLStore) GetUserByIdAsync(id string) StoreChannel {
 func (self *UserSQLStore) UpdateAsync(user User) StoreChannel {
 	var storeChan = make(StoreChannel, 1)
 	go func() {
-		tx := self.db.MustBegin()
-		tx.NamedExec("UPDATE user SET first_name=:first_name, last_name=:last_name, email=:email, username=:username, password=:password, confirm_token=:confirm_token, verified=:verified, reset=:reset WHERE id=:id", &user)
-		err := tx.Commit()
+		_, err := self.db.NamedExec("UPDATE user SET first_name=:first_name, last_name=:last_name, email=:email, username=:username, password=:password, confirm_token=:confirm_token, verified=:verified, reset=:reset WHERE id=:id", &user)
 		storeChan <- StoreResult{
 			Data:  user,
 			Total: 1,
@@ -86,9 +83,7 @@ func (self *UserSQLStore) DeleteForgotUser(id string) StoreResult {
 		}
 	}
 
-	tx := self.db.MustBegin()
-	tx.MustExec("DELETE from user where id = $1", id)
-	err := tx.Commit()
+	_, err := self.db.Exec("DELETE from user where id = $1", id)
 
 	return StoreResult{
 		Data:  nil,
@@ -98,9 +93,7 @@ func (self *UserSQLStore) DeleteForgotUser(id string) StoreResult {
 }
 
 func (self *UserSQLStore) SaveForgotUser(user ForgotUser) StoreResult {
-	tx := self.db.MustBegin()
-	tx.MustExec("INSERT INTO user_forgot_password (id, token, created) values (:id, :token, :created)", &user)
-	err := tx.Commit()
+	_, err := self.db.Exec("INSERT INTO user_forgot_password (id, token, created) values (:id, :token, :created)", &user)
 	return StoreResult{
 		Data:  user,
 		Total: 1,
@@ -109,9 +102,10 @@ func (self *UserSQLStore) SaveForgotUser(user ForgotUser) StoreResult {
 }
 
 func (self *UserSQLStore) Save(user User) StoreResult {
-	tx := self.db.MustBegin()
-	tx.Query("INSERT INTO user (id, first_name, last_name, email, username, password, confirm_token, verified, reset) values (?, ?, ?, ?, ?, ?, ?, ?, ?)", user.Id, user.FirstName, user.LastName, user.Email, user.Username, user.Password, user.ConfirmToken, false, false)
-	err := tx.Commit()
+	_, err := self.db.Exec("INSERT INTO user " +
+		"(id, first_name, last_name, email, username, password, confirm_token, verified, reset) " +
+		"values (?, ?, ?, ?, ?, ?, ?, ?, ?)",
+		user.Id, user.FirstName, user.LastName, user.Email, user.Username, user.Password, user.ConfirmToken, false, false)
 	return StoreResult{
 		Data:  user,
 		Total: 1,

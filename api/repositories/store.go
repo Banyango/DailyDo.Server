@@ -16,7 +16,7 @@ type IPostRepository interface {
 }
 
 type IUserRepository interface {
-	GetUserByEmailAsync(email string) StoreChannel
+	GetUserByEmailOrUsernameAsync(email string, username string) StoreChannel
 	GetUserByConfirmTokenAsync(token string) StoreChannel
 	GetUserByIdAsync(id string) StoreChannel
 	Save(user model.User) StoreResult

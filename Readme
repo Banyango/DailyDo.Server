@@ -9,3 +9,19 @@ Post Pagination
 Index routes
 Main server stuff
 Post Post with server jwt or something
+
+
+### Migrations
+
+Migrations use go-migrate to handle migrations.
+
+The up/down are stored in the migrations folder. If you alter the database you'll need to add an
+update script there.
+
+To migrate you database you'll need to run the following command.
+
+```
+migrate -path migrations/ -database "mysql://fooduser:foodtest@/food_test" up 2
+```
+
+_This command will migrate the test db that spins up in docker-compose.dev_

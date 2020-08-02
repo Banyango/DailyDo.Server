@@ -53,7 +53,7 @@ package users
 //	var response map[string]string
 //	json.Unmarshal([]byte(rec.Body.String()), &response)
 //
-//	user := <- store.User().GetUserById(response["id"])
+//	user := <- store.User().GetUserByIdAsync(response["id"])
 //
 //	assert.NotNil(t, user.Data)
 //}

@@ -16,11 +16,11 @@ type IPostRepository interface {
 }
 
 type IUserRepository interface {
-	GetUserByEmail(email string) StoreChannel
-	GetUserByConfirmToken(token string) StoreChannel
-	GetUserById(id string) StoreChannel
+	GetUserByEmailAsync(email string) StoreChannel
+	GetUserByConfirmTokenAsync(token string) StoreChannel
+	GetUserByIdAsync(id string) StoreChannel
 	Save(user model.User) StoreResult
-	Update(user model.User) StoreChannel
+	UpdateAsync(user model.User) StoreChannel
 	DeleteForgotUser(id string) StoreResult
 	SaveForgotUser(user model.ForgotUser) StoreResult
 }

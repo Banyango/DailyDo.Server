@@ -20,25 +20,11 @@ func NewUserSQLStore(session *sqlx.DB) *UserSQLStore {
 }
 
 
-func (self *UserSQLStore) GetUserByEmail(email string) StoreChannel {
-	var storeChan = make(StoreChannel, 1)
-	go func() {
-		user := []User{}
-		err := self.db.Get(user, "SELECT * from user WHERE email = ?", email)
-		storeChan <- StoreResult{
-			Data:  user,
-			Total: 1,
-			Err:   err,
-		}
-	}()
-	return storeChan
-}
-
-func (self *UserSQLStore) GetUserByConfirmToken(token string) StoreChannel {
+func (self *UserSQLStore) GetUserByEmailAsync(email string) StoreChannel {
 	var storeChan = make(StoreChannel, 1)
 	go func() {
 		user := User{}
-		err := self.db.Get(&user, "SELECT * from user WHERE confirm_token = $1", token)
+		err := self.db.Get(&user, "SELECT * from user WHERE email = ?", email)
 		storeChan <- StoreResult{
 			Data:  user,
 			Total: 1,
@@ -48,11 +34,11 @@ func (self *UserSQLStore) GetUserByConfirmToken(token string) StoreChannel {
 	return storeChan
 }
 
-func (self *UserSQLStore) GetUserById(id string) StoreChannel {
+func (self *UserSQLStore) GetUserByConfirmTokenAsync(token string) StoreChannel {
 	var storeChan = make(StoreChannel, 1)
 	go func() {
 		user := User{}
-		err := self.db.Get(&user, "SELECT * from user WHERE id = $1", id)
+		err := self.db.Get(&user, "SELECT * from user WHERE confirm_token = ?", token)
 		storeChan <- StoreResult{
 			Data:  user,
 			Total: 1,
@@ -62,11 +48,25 @@ func (self *UserSQLStore) GetUserById(id string) StoreChannel {
 	return storeChan
 }
 
-func (self *UserSQLStore) Update(user User) StoreChannel {
+func (self *UserSQLStore) GetUserByIdAsync(id string) StoreChannel {
+	var storeChan = make(StoreChannel, 1)
+	go func() {
+		user := User{}
+		err := self.db.Get(&user, "SELECT * from user WHERE id = ?", id)
+		storeChan <- StoreResult{
+			Data:  user,
+			Total: 1,
+			Err:   err,
+		}
+	}()
+	return storeChan
+}
+
+func (self *UserSQLStore) UpdateAsync(user User) StoreChannel {
 	var storeChan = make(StoreChannel, 1)
 	go func() {
 		tx := self.db.MustBegin()
-		tx.MustExec("UPDATE user SET first_name=:first_name, last_name=:last_name, email=:email, username=:username, password=:password, confirm_token=:confirm_token, verified=:verified, reset=:reset WHERE id=:id", &user)
+		tx.NamedExec("UPDATE user SET first_name=:first_name, last_name=:last_name, email=:email, username=:username, password=:password, confirm_token=:confirm_token, verified=:verified, reset=:reset WHERE id=:id", &user)
 		err := tx.Commit()
 		storeChan <- StoreResult{
 			Data:  user,

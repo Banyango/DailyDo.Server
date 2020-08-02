@@ -57,9 +57,9 @@ func (self *UserController) PostRegister(c echo.Context) error {
 		FirstName: request.FirstName,
 	}
 
-	userFound := <-self.userRepository.GetUserByEmail(user.Email)
-	if userFound.Err != nil {
-		return utils.LogError(err, http.StatusUnauthorized, "Email was already used to sign up...")
+	userFound := <-self.userRepository.GetUserByEmailAsync(user.Email)
+	if userFound.Err == nil {
+		return utils.LogError(err, http.StatusBadRequest, "Email was already used to sign up...")
 	}
 
 	hashedPassword, err := self.passwordService.HashPassword(request.Password)
@@ -107,7 +107,7 @@ func (self *UserController) PostResetPassword(c echo.Context) error {
 		return utils.LogError(err, http.StatusBadRequest, err.Error())
 	}
 
-	userByEmail := <-self.userRepository.GetUserByEmail(request.Email)
+	userByEmail := <-self.userRepository.GetUserByEmailAsync(request.Email)
 	if userByEmail.Err == nil {
 
 		user := userByEmail.Data.(User)
@@ -157,14 +157,14 @@ func (self *UserController) PostConfirmResetPassword(c echo.Context) error {
 
 	idHash := self.passwordService.HashId(request.Token)
 
-	if tokenChan := <-self.userRepository.GetUserByConfirmToken(idHash); tokenChan.Err == nil {
+	if tokenChan := <-self.userRepository.GetUserByConfirmTokenAsync(idHash); tokenChan.Err == nil {
 		forgotUser := tokenChan.Data.(ForgotUser)
 		result := self.userRepository.DeleteForgotUser(forgotUser.Id)
 		if result.Err != nil {
 			return utils.LogError(result.Err, http.StatusInternalServerError, "Internal server error")
 		}
 
-		userChan := <-self.userRepository.GetUserById(forgotUser.Id)
+		userChan := <-self.userRepository.GetUserByIdAsync(forgotUser.Id)
 		if userChan.Err != nil {
 			return utils.LogError(result.Err, http.StatusInternalServerError, "Internal server error")
 		}
@@ -177,7 +177,7 @@ func (self *UserController) PostConfirmResetPassword(c echo.Context) error {
 		}
 
 		user.Password = newPassword
-		saveResult := <- self.userRepository.Update(user)
+		saveResult := <- self.userRepository.UpdateAsync(user)
 		if saveResult.Err != nil {
 			return utils.LogError(saveResult.Err, http.StatusInternalServerError, "Internal server error")
 		}
@@ -211,7 +211,7 @@ func (self *UserController) PostLogin(c echo.Context) error {
 		return utils.LogError(err, http.StatusBadRequest, "Enter email/password")
 	}
 
-	userDb := <-self.userRepository.GetUserByEmail(request.Email)
+	userDb := <-self.userRepository.GetUserByEmailAsync(request.Email)
 	if userDb.Err != nil {
 		return utils.LogError(err, http.StatusUnauthorized, "Bad email/password")
 	}
@@ -244,11 +244,11 @@ func (self *UserController) PostConfirmAccount(c echo.Context) error {
 
 	token := self.passwordService.HashId(request.Token)
 
-	if userChan := <-self.userRepository.GetUserByConfirmToken(token); userChan.Err == nil {
+	if userChan := <-self.userRepository.GetUserByConfirmTokenAsync(token); userChan.Err == nil {
 		user := userChan.Data.(User)
 		user.Verified = true
 		user.ConfirmToken = ""
-		saveResult := <- self.userRepository.Update(user)
+		saveResult := <- self.userRepository.UpdateAsync(user)
 		return saveResult.Err
 	} else {
 		return echo.NewHTTPError(http.StatusInternalServerError, "Confirmation error")
@@ -282,7 +282,7 @@ func (self *UserController) PostMe(c echo.Context) error {
 	claims := user.Claims.(jwt.MapClaims)
 	id := claims["id"].(string)
 
-	userDb := <-self.userRepository.GetUserById(id)
+	userDb := <-self.userRepository.GetUserByIdAsync(id)
 	if userDb.Err == nil {
 		fetchedUser := userDb.Data.(User)
 		return c.JSON(http.StatusOK, fetchedUser)

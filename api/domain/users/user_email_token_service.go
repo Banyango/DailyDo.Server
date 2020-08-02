@@ -92,12 +92,12 @@ func (self *EmailTokenService) SendConfirmEmail(email string, id string) (err er
 }
 
 func (self *EmailTokenService) SendForgotEmail(email string, id string) (err error) {
-	url := os.Getenv("SERVER_URL")
+	url := os.Getenv("HOST")
 
 	data := struct {
 		Link string
 	}{
-		Link: fmt.Sprintf("%s/resetPassword?token=%s", url, id),
+		Link: fmt.Sprintf("%s/reset_password?token=%s", url, id),
 	}
 
 	var buffer bytes.Buffer

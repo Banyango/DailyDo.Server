@@ -157,7 +157,7 @@ func (self *UserController) PostConfirmResetPassword(c echo.Context) error {
 
 	idHash := self.passwordService.HashId(request.Token)
 
-	if tokenChan := <-self.userRepository.GetUserByConfirmTokenAsync(idHash); tokenChan.Err == nil {
+	if tokenChan := <-self.userRepository.GetForgotUserByTokenAsync(idHash); tokenChan.Err == nil {
 		forgotUser := tokenChan.Data.(ForgotUser)
 		result := self.userRepository.DeleteForgotUser(forgotUser.Id)
 		if result.Err != nil {

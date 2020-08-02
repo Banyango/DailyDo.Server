@@ -47,6 +47,20 @@ func (self *UserSQLStore) GetUserByConfirmTokenAsync(token string) StoreChannel 
 	return storeChan
 }
 
+func (self *UserSQLStore) GetForgotUserByTokenAsync(token string) StoreChannel {
+	var storeChan = make(StoreChannel, 1)
+	go func() {
+		user := ForgotUser{}
+		err := self.db.Get(&user, "SELECT * from user_forgot_password WHERE token = ?", token)
+		storeChan <- StoreResult{
+			Data:  user,
+			Total: 1,
+			Err:   err,
+		}
+	}()
+	return storeChan
+}
+
 func (self *UserSQLStore) GetUserByIdAsync(id string) StoreChannel {
 	var storeChan = make(StoreChannel, 1)
 	go func() {
@@ -83,7 +97,7 @@ func (self *UserSQLStore) DeleteForgotUser(id string) StoreResult {
 		}
 	}
 
-	_, err := self.db.Exec("DELETE from user where id = $1", id)
+	_, err := self.db.Exec("DELETE from user_forgot_password where id = ?", id)
 
 	return StoreResult{
 		Data:  nil,
@@ -93,7 +107,7 @@ func (self *UserSQLStore) DeleteForgotUser(id string) StoreResult {
 }
 
 func (self *UserSQLStore) SaveForgotUser(user ForgotUser) StoreResult {
-	_, err := self.db.Exec("INSERT INTO user_forgot_password (id, token, created) values (:id, :token, :created)", &user)
+	_, err := self.db.NamedExec("INSERT INTO user_forgot_password (id, token, created) values (:id, :token, :created)", &user)
 	return StoreResult{
 		Data:  user,
 		Total: 1,

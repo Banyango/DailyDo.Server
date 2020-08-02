@@ -11,13 +11,14 @@ type IndexResponse struct {
 }
 
 type IndexLinks struct {
-	Categories model.Link `json:"categories"`
-	Posts      model.Link `json:"posts"`
-	Logout     model.Link `json:"logout"`
-	Login      model.Link `json:"login"`
-	Forgot     model.Link `json:"forgotPassword"`
-	Register   model.Link `json:"register"`
-	Confirm   model.Link `json:"confirm"`
+	Categories   model.Link `json:"categories"`
+	Posts        model.Link `json:"posts"`
+	Logout       model.Link `json:"logout"`
+	Login        model.Link `json:"login"`
+	Forgot       model.Link `json:"forgotPassword"`
+	Register     model.Link `json:"register"`
+	Confirm      model.Link `json:"confirm"`
+	ConfirmReset model.Link `json:"confirmResetPassword"`
 }
 
 func NewIndexResponse(ctx echo.Context) (IndexResponse, error) {
@@ -41,7 +42,7 @@ func NewIndexResponse(ctx echo.Context) (IndexResponse, error) {
 		return IndexResponse{}, err
 	}
 
-	forgotLink, err := links.NewLinkBuilder("forgotPassword", "post", nil, ctx)
+	forgotLink, err := links.NewLinkBuilder("reset_password", "post", nil, ctx)
 	if err != nil {
 		return IndexResponse{}, err
 	}
@@ -56,15 +57,21 @@ func NewIndexResponse(ctx echo.Context) (IndexResponse, error) {
 		return IndexResponse{}, err
 	}
 
+	confirmResetLink, err := links.NewLinkBuilder("confirm_reset_password", "post", nil, ctx)
+	if err != nil {
+		return IndexResponse{}, err
+	}
+
 	return IndexResponse{
 		IndexLinks: IndexLinks{
-			Categories: categoriesLink.BuildLink(),
-			Posts:      postLink.BuildLink(),
-			Logout:     logoutLink.BuildLink(),
-			Login:      loginLink.BuildLink(),
-			Forgot:     forgotLink.BuildLink(),
-			Register:   registerLink.BuildLink(),
-			Confirm:   confirmLink.BuildLink(),
+			Categories:   categoriesLink.BuildLink(),
+			Posts:        postLink.BuildLink(),
+			Logout:       logoutLink.BuildLink(),
+			Login:        loginLink.BuildLink(),
+			Forgot:       forgotLink.BuildLink(),
+			Register:     registerLink.BuildLink(),
+			Confirm:      confirmLink.BuildLink(),
+			ConfirmReset: confirmResetLink.BuildLink(),
 		},
 	}, nil
 }

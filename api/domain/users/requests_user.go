@@ -21,19 +21,20 @@ func NewCreateUserRequestFromContext(c echo.Context) (request *CreateUserRequest
 	}
 
 	message := "missing "
+	fail := false
 	if request.Username == "" {
 		message = message + "username "
+		fail = true
 	}
 	if request.Email == "" {
 		message = message + "email "
+		fail = true
 	}
-	if request.LastName == "" {
-		message = message + "lastName "
+	if request.Password == "" {
+		message = message + "password "
+		fail = true
 	}
-	if request.FirstName == "" {
-		message = message + "firstName "
-	}
-	if request.FirstName == "" {
+	if fail {
 		return nil, fmt.Errorf(message)
 	}
 

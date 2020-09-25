@@ -6,7 +6,6 @@ import (
 	"github.com/Banyango/gifoody_server/api/infrastructure/utils"
 	. "github.com/Banyango/gifoody_server/api/model"
 	"github.com/Banyango/gifoody_server/api/repositories"
-	"github.com/dgrijalva/jwt-go"
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 	"net/http"
@@ -18,9 +17,14 @@ type UserController struct {
 	emailTokenService IEmailTokenService
 	passwordService   IPasswordService
 	jwtService        IJWTService
+	userAuthService   IUserAuthService
 }
 
-func NewUserController(repository repositories.IUserRepository, mailService mail.MailInterface, templateService template.TemplateInterface) *UserController {
+func NewUserController(
+	repository repositories.IUserRepository,
+	mailService mail.MailInterface,
+	templateService template.TemplateInterface,
+	userAuthService IUserAuthService) *UserController {
 
 	emailTokenService := NewEmailTokenService(mailService, templateService)
 	passwordService := NewPasswordService()
@@ -31,6 +35,7 @@ func NewUserController(repository repositories.IUserRepository, mailService mail
 		emailTokenService: emailTokenService,
 		passwordService:   passwordService,
 		jwtService:        jwtService,
+		userAuthService:   userAuthService,
 	}
 }
 
@@ -177,7 +182,7 @@ func (self *UserController) PostConfirmResetPassword(c echo.Context) error {
 		}
 
 		user.Password = newPassword
-		saveResult := <- self.userRepository.UpdateAsync(user)
+		saveResult := <-self.userRepository.UpdateAsync(user)
 		if saveResult.Err != nil {
 			return utils.LogError(saveResult.Err, http.StatusInternalServerError, "Internal server error")
 		}
@@ -252,7 +257,7 @@ func (self *UserController) PostConfirmAccount(c echo.Context) error {
 		user := userChan.Data.(User)
 		user.Verified = true
 		user.ConfirmToken = ""
-		saveResult := <- self.userRepository.UpdateAsync(user)
+		saveResult := <-self.userRepository.UpdateAsync(user)
 		return saveResult.Err
 	} else {
 		return echo.NewHTTPError(http.StatusInternalServerError, "Confirmation error")
@@ -272,7 +277,7 @@ func (self *UserController) PostLogout(c echo.Context) error {
 	return c.JSON(http.StatusOK, "")
 }
 
-// PostMe will return ok if a user has a proper JWT Token
+// GetMe will return a user if a user has a proper JWT Token
 // or it will expire the token and return unauthorized if user is not found.
 // @Summary Me.
 // @Description Check the refresh_token against a user, logout if user doesn't exist.
@@ -280,16 +285,12 @@ func (self *UserController) PostLogout(c echo.Context) error {
 // @Produce json
 // @Success 200 {object} User
 // @Failure 401 {string} string "User wasn't found from token."
-// @Router /v1/me [post]
-func (self *UserController) PostMe(c echo.Context) error {
-	user := c.Get("refresh_token").(*jwt.Token)
-	claims := user.Claims.(jwt.MapClaims)
-	id := claims["id"].(string)
+// @Router /v1/me [get]
+func (self *UserController) GetMe(c echo.Context) error {
 
-	userDb := <-self.userRepository.GetUserByIdAsync(id)
-	if userDb.Err == nil {
-		fetchedUser := userDb.Data.(User)
-		return c.JSON(http.StatusOK, fetchedUser)
+	user, err := self.userAuthService.GetLoggedInUser(c)
+	if err == nil {
+		return c.JSON(http.StatusOK, user)
 	}
 
 	// user wasn't found expire token.

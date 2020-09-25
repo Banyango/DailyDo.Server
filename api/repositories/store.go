@@ -8,11 +8,16 @@ import (
 )
 
 type DBContext interface {
-	Post() IPostRepository
+	Task() ITaskRepository
 }
 
-type IPostRepository interface {
-	FindPosts(model.PostQuery) StoreChannel
+type ITaskRepository interface {
+	GetTaskAsync(model.TaskQuery) StoreChannel
+	GetChildrenByTaskIdAsync(id string, limit int, offset int) StoreChannel
+	GetTaskByIdAsync(id string) StoreChannel
+	Save(task model.Task) StoreResult
+	UpdateAsync(task model.Task) StoreChannel
+	Delete(id string) StoreResult
 }
 
 type IUserRepository interface {
@@ -28,12 +33,12 @@ type IUserRepository interface {
 
 type AppStore struct {
 	db   *sqlx.DB
-	post IPostRepository
+	task ITaskRepository
 	user IUserRepository
 }
 
-func (self *AppStore) Post() IPostRepository {
-	return self.post
+func (self *AppStore) Task() ITaskRepository {
+	return self.task
 }
 
 func (self *AppStore) User() IUserRepository {
@@ -43,7 +48,7 @@ func (self *AppStore) User() IUserRepository {
 func NewAppStore(db *sqlx.DB) *AppStore {
 	store := new(AppStore)
 
-	store.post = stores.NewPostSQLStore(db)
+	store.task = stores.NewTaskSQLStore(db)
 	store.user = stores.NewUserSQLStore(db)
 
 	return store

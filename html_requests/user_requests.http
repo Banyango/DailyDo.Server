@@ -1,4 +1,54 @@
 GET http://localhost:3001/api/v1/index
 Accept: application/json
 
-###
+### register
+POST http://localhost:3001/api/v1/register
+Content-Type: application/json
+
+{
+"username": "test1",
+  "email": "test@test.com",
+  "password": "1234"
+}
+
+### login
+POST http://localhost:3001/api/v1/login
+Content-Type: application/json
+
+{
+  "email": "test@test.com",
+  "password": "1234"
+}
+
+> {%client.global.set("token", response.headers.valuesOf("Set-Cookie")[0].split("=")[1]);%}
+
+### Get me
+GET http://localhost:3001/api/v1/auth/me
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6InRlc3RAdGVzdC5jb20iLCJleHAiOiIyMDIwLTA5LTI1VDA5OjMwOjAyLjI2NTQwOS0wNjowMCIsImZpcnN0TmFtZSI6IiIsImlkIjoiNmVkZTZkMjktM2IxYi00Zjk3LThhN2EtZDQwZDc0MTZmYWFkIiwibGFzdE5hbWUiOiIiLCJuYW1lIjoidGVzdDEifQ.qJDfG1lQj_22PjYOOCDwhYCDXjFjLqlKLRBJKpMLGJE
+
+### create task
+POST http://localhost:3001/api/v1/auth/tasks
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6InRlc3RAdGVzdC5jb20iLCJleHAiOiIyMDIwLTA5LTI0VDE4OjMzOjM5LjA0Mjg2OS0wNjowMCIsImZpcnN0TmFtZSI6IiIsImlkIjoiNmVkZTZkMjktM2IxYi00Zjk3LThhN2EtZDQwZDc0MTZmYWFkIiwibGFzdE5hbWUiOiIiLCJuYW1lIjoidGVzdDEifQ.izHJmZ8TitnGQwjnhECXVahXQ19QP8fw14fiTXiI3b0
+#Authorization: Bearer {{token}}}
+
+{
+  "text": "1234",
+  "order": 0,
+  "completed": false
+}
+
+### update task
+PUT http://localhost:3001/api/v1/auth/tasks/a809ef8b-8b70-4dea-b4e7-6ebb254f10f7
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6InRlc3RAdGVzdC5jb20iLCJleHAiOiIyMDIwLTA5LTI0VDE4OjMzOjM5LjA0Mjg2OS0wNjowMCIsImZpcnN0TmFtZSI6IiIsImlkIjoiNmVkZTZkMjktM2IxYi00Zjk3LThhN2EtZDQwZDc0MTZmYWFkIiwibGFzdE5hbWUiOiIiLCJuYW1lIjoidGVzdDEifQ.izHJmZ8TitnGQwjnhECXVahXQ19QP8fw14fiTXiI3b0
+
+{
+  "id": "a809ef8b-8b70-4dea-b4e7-6ebb254f10f7",
+  "text": "12345",
+  "order": 1,
+  "completed": true
+}
+
+### delete task

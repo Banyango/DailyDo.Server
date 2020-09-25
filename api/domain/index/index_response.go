@@ -11,23 +11,18 @@ type IndexResponse struct {
 }
 
 type IndexLinks struct {
-	Categories   model.Link `json:"categories"`
-	Posts        model.Link `json:"posts"`
+	Posts        model.Link `json:"tasks"`
 	Logout       model.Link `json:"logout"`
 	Login        model.Link `json:"login"`
 	Forgot       model.Link `json:"forgotPassword"`
 	Register     model.Link `json:"register"`
 	Confirm      model.Link `json:"confirm"`
 	ConfirmReset model.Link `json:"confirmResetPassword"`
+	Me           model.Link `json:"me"`
 }
 
 func NewIndexResponse(ctx echo.Context) (IndexResponse, error) {
-	categoriesLink, err := links.NewLinkBuilder("categories", "get", nil, ctx)
-	if err != nil {
-		return IndexResponse{}, err
-	}
-
-	postLink, err := links.NewLinkBuilder("posts", "get", nil, ctx)
+	postLink, err := links.NewLinkBuilder("auth/tasks", "get", nil, ctx)
 	if err != nil {
 		return IndexResponse{}, err
 	}
@@ -62,9 +57,13 @@ func NewIndexResponse(ctx echo.Context) (IndexResponse, error) {
 		return IndexResponse{}, err
 	}
 
+	meLink, err := links.NewLinkBuilder("auth/me", "get", nil, ctx)
+	if err != nil {
+		return IndexResponse{}, err
+	}
+
 	return IndexResponse{
 		IndexLinks: IndexLinks{
-			Categories:   categoriesLink.BuildLink(),
 			Posts:        postLink.BuildLink(),
 			Logout:       logoutLink.BuildLink(),
 			Login:        loginLink.BuildLink(),
@@ -72,6 +71,7 @@ func NewIndexResponse(ctx echo.Context) (IndexResponse, error) {
 			Register:     registerLink.BuildLink(),
 			Confirm:      confirmLink.BuildLink(),
 			ConfirmReset: confirmResetLink.BuildLink(),
+			Me:           meLink.BuildLink(),
 		},
 	}, nil
 }

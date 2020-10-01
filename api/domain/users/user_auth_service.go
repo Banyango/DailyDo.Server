@@ -17,7 +17,7 @@ type UserAuthService struct {
 	UserRepository repositories.IUserRepository
 }
 
-func NewUserAuthService(userRepository repositories.IUserRepository) *UserAuthService{
+func NewUserAuthService(userRepository repositories.IUserRepository) *UserAuthService {
 	m := new(UserAuthService)
 	m.UserRepository = userRepository
 	return m
@@ -32,14 +32,14 @@ func (s *UserAuthService) GetLoggedInUser(c echo.Context) (model.User, error) {
 	user := userInterface.(*jwt.Token)
 	claims := user.Claims.(jwt.MapClaims)
 	id := claims["id"].(string)
-	userById := <- s.UserRepository.GetUserByIdAsync(id)
+	userById := <-s.UserRepository.GetUserByIdAsync(id)
 	if userById.Err != nil {
 		return model.User{}, userById.Err
 	}
 	return userById.Data.(model.User), nil
 }
 
-func (s *UserAuthService) GetUserIdFromContext(c echo.Context) (string,error) {
+func (s *UserAuthService) GetUserIdFromContext(c echo.Context) (string, error) {
 	userInterface := c.Get("user")
 	if userInterface == nil {
 		return "", fmt.Errorf("token not found")

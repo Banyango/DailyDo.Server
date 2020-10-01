@@ -1,6 +1,7 @@
 package api
 
 import (
+	"github.com/Banyango/gifoody_server/api/domain/days"
 	"github.com/Banyango/gifoody_server/api/domain/index"
 	"github.com/Banyango/gifoody_server/api/domain/tasks"
 	"github.com/Banyango/gifoody_server/api/domain/users"
@@ -8,6 +9,7 @@ import (
 	"github.com/Banyango/gifoody_server/api/infrastructure/os"
 	"github.com/Banyango/gifoody_server/api/infrastructure/pagination"
 	"github.com/Banyango/gifoody_server/api/infrastructure/template"
+	"github.com/Banyango/gifoody_server/api/infrastructure/time"
 	"github.com/Banyango/gifoody_server/api/repositories"
 	"github.com/Banyango/gifoody_server/constants"
 	"github.com/jmoiron/sqlx"
@@ -26,11 +28,13 @@ func InitRouter(echo *echo.Echo, db *sqlx.DB) {
 	mailService := mail.NewMailService()
 	templateService := template.NewTemplateService(osService)
 	authService := users.NewUserAuthService(store.User())
+	timeService := time.NewTimeService()
 
 	//controllers
+	indexController := index.NewIndexController()
+	dayController := days.NewDayController(timeService, store.Day(), authService)
 	taskController := tasks.NewTaskController(store.Task(), authService)
 	userController := users.NewUserController(store.User(), mailService, templateService, authService)
-	indexController := index.NewIndexController()
 
 	// index
 	mainGroup.GET("index", indexController.GetIndex)
@@ -47,21 +51,22 @@ func InitRouter(echo *echo.Echo, db *sqlx.DB) {
 
 	jwtSecret := osService.GetEnv("API_JWT_SECRET")
 	restrictedGroup.Use(middleware.JWTWithConfig(middleware.JWTConfig{
-		SigningKey:[]byte(jwtSecret),
-		TokenLookup:"cookie:refresh_token",
+		SigningKey:  []byte(jwtSecret),
+		TokenLookup: "cookie:refresh_token",
 	}))
 
 	// users
 	restrictedGroup.GET("me", userController.GetMe)
 
-	// todo api needs to be
 	// days
-	// days/{id}/tasks
-	// days/{id}/tasks etc...
-
+	restrictedGroup.GET("days", dayController.ListDays, pagination.Paginate())
+	restrictedGroup.POST("days", dayController.CreateDay)
+	restrictedGroup.PUT("days/:id", dayController.UpdateDay)
 
 	// tasks
 	restrictedGroup.GET("tasks", taskController.ListTask, pagination.Paginate())
+	restrictedGroup.GET("tasks/:id", taskController.GetTask)
+	restrictedGroup.GET("tasks/:id/tasks", taskController.ListTasks)
 	restrictedGroup.GET("tasks/:id/items", taskController.ListItems, pagination.Paginate())
 	// todo need task_id on body
 	restrictedGroup.POST("tasks", taskController.CreateTask)

@@ -1,16 +1,15 @@
 package stores
 
 import (
-	_ "github.com/go-sql-driver/mysql"
 	"github.com/Banyango/gifoody_server/api/model"
+	_ "github.com/go-sql-driver/mysql"
 	"github.com/google/uuid"
 	"github.com/jmoiron/sqlx"
 	"github.com/stretchr/testify/assert"
 	"testing"
-
 )
 
-func TestUserSQLStore_Save (t *testing.T) {
+func TestUserSQLStore_Save(t *testing.T) {
 	db, err := sqlx.Connect("mysql", "fooduser:foodtest@/food_test?parseTime=true")
 	assert.Nil(t, err)
 	assert.NotNil(t, db)
@@ -32,13 +31,13 @@ func TestUserSQLStore_Save (t *testing.T) {
 
 	store.Save(user)
 
-	userById := <- store.GetUserByIdAsync(id)
+	userById := <-store.GetUserByIdAsync(id)
 
 	assert.Nil(t, userById.Err)
 	assert.NotNil(t, userById.Data)
 }
 
-func TestUserSQLStore_SaveShouldFail_WhenDuplicateEmail (t *testing.T) {
+func TestUserSQLStore_SaveShouldFail_WhenDuplicateEmail(t *testing.T) {
 	db, err := sqlx.Connect("mysql", "fooduser:foodtest@/food_test?parseTime=true")
 	assert.Nil(t, err)
 	assert.NotNil(t, db)
@@ -76,7 +75,7 @@ func TestUserSQLStore_SaveShouldFail_WhenDuplicateEmail (t *testing.T) {
 	assert.NotNil(t, result.Err)
 }
 
-func TestUserSQLStore_SaveShouldFail_WhenDuplicateUsername (t *testing.T) {
+func TestUserSQLStore_SaveShouldFail_WhenDuplicateUsername(t *testing.T) {
 	db, err := sqlx.Connect("mysql", "fooduser:foodtest@/food_test?parseTime=true")
 	assert.Nil(t, err)
 	assert.NotNil(t, db)
@@ -114,7 +113,7 @@ func TestUserSQLStore_SaveShouldFail_WhenDuplicateUsername (t *testing.T) {
 	assert.NotNil(t, result.Err)
 }
 
-func TestUserSQLStore_Update (t *testing.T) {
+func TestUserSQLStore_Update(t *testing.T) {
 	db, err := sqlx.Connect("mysql", "fooduser:foodtest@/food_test?parseTime=true")
 	assert.Nil(t, err)
 	assert.NotNil(t, db)
@@ -148,9 +147,9 @@ func TestUserSQLStore_Update (t *testing.T) {
 		Verified:     true,
 	}
 
-	<- store.UpdateAsync(updateUser)
+	<-store.UpdateAsync(updateUser)
 
-	userById := <- store.GetUserByIdAsync(id)
+	userById := <-store.GetUserByIdAsync(id)
 
 	assert.Equal(t, updateUser, userById.Data.(model.User))
 }

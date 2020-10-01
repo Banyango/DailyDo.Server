@@ -20,7 +20,7 @@ type Pagination struct {
 	HasNextPages     bool        `json:"hasNext"`
 	Data             interface{} `json:"data"`
 	Next             model.Link  `json:"next"`
-	Previous         model.Link        `json:"previous"`
+	Previous         model.Link  `json:"previous"`
 }
 
 // https://github.com/expressjs/express-paginate/blob/master/index.js

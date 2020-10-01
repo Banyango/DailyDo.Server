@@ -9,11 +9,22 @@ import (
 
 type DBContext interface {
 	Task() ITaskRepository
+	Day() IDayRepository
+	User() IUserRepository
+}
+
+type IDayRepository interface {
+	Save(task model.Day) StoreResult
+	GetDaysAsync(userId string, limit int, offset int) StoreChannel
+	GetDayByIdAsync(id string) StoreChannel
+	UpdateAsync(task model.Day) StoreChannel
+	Delete(id string) StoreResult
 }
 
 type ITaskRepository interface {
 	GetTaskAsync(model.TaskQuery) StoreChannel
-	GetChildrenByTaskIdAsync(id string, limit int, offset int) StoreChannel
+	GetChildrenByTaskIdAsync(id string) StoreChannel
+	GetTasksByParentAsync(id string) StoreChannel
 	GetTaskByIdAsync(id string) StoreChannel
 	Save(task model.Task) StoreResult
 	UpdateAsync(task model.Task) StoreChannel
@@ -35,6 +46,7 @@ type AppStore struct {
 	db   *sqlx.DB
 	task ITaskRepository
 	user IUserRepository
+	day  IDayRepository
 }
 
 func (self *AppStore) Task() ITaskRepository {
@@ -45,9 +57,14 @@ func (self *AppStore) User() IUserRepository {
 	return self.user
 }
 
+func (self *AppStore) Day() IDayRepository {
+	return self.day
+}
+
 func NewAppStore(db *sqlx.DB) *AppStore {
 	store := new(AppStore)
 
+	store.day = stores.NewDaySQLStore(db)
 	store.task = stores.NewTaskSQLStore(db)
 	store.user = stores.NewUserSQLStore(db)
 

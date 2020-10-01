@@ -8,7 +8,7 @@ build: clean mk-dist
 	@ go build -o ./dist/gifoody .
 
 migratedb:
-    migrate -path migrations -database 'mysql://fooduser\:foodtest@/food_test' $(command) $(schemaNumber)
+    @ migrate -path migrations/ -database "mysql://fooduser:foodtest@/food_test" ${1} ${2}
 
 run: build
 	@ docker-compose up -d

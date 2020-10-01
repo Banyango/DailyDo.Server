@@ -116,8 +116,8 @@ func (self *UserSQLStore) SaveForgotUser(user ForgotUser) StoreResult {
 }
 
 func (self *UserSQLStore) Save(user User) StoreResult {
-	_, err := self.db.Exec("INSERT INTO users " +
-		"(id, first_name, last_name, email, username, password, confirm_token, verified, reset) " +
+	_, err := self.db.Exec("INSERT INTO users "+
+		"(id, first_name, last_name, email, username, password, confirm_token, verified, reset) "+
 		"values (?, ?, ?, ?, ?, ?, ?, ?, ?)",
 		user.Id, user.FirstName, user.LastName, user.Email, user.Username, user.Password, user.ConfirmToken, false, false)
 	return StoreResult{
@@ -126,5 +126,3 @@ func (self *UserSQLStore) Save(user User) StoreResult {
 		Err:   err,
 	}
 }
-
-

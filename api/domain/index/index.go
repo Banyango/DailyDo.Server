@@ -1,17 +1,15 @@
 package index
 
 import (
-	"net/http"
 	"github.com/labstack/echo/v4"
+	"net/http"
 )
 
 type IndexController struct {
 }
 
 func NewIndexController() *IndexController {
-	return &IndexController{
-
-	}
+	return &IndexController{}
 }
 
 // @Summary Get Indexs.
@@ -29,4 +27,3 @@ func (self *IndexController) GetIndex(c echo.Context) (err error) {
 	}
 	return c.JSON(http.StatusOK, response)
 }
-

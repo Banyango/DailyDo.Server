@@ -1,0 +1,20 @@
+### create day
+POST http://localhost:3001/api/v1/auth/days
+Content-Type: application/json
+Cookie: refresh_token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6InRlc3RAdGVzdC5jb20iLCJleHAiOiIyMDIwLTA5LTI3VDA5OjQwOjA3LjA1NDQxOS0wNjowMCIsImZpcnN0TmFtZSI6IiIsImlkIjoiNmVkZTZkMjktM2IxYi00Zjk3LThhN2EtZDQwZDc0MTZmYWFkIiwibGFzdE5hbWUiOiIiLCJuYW1lIjoidGVzdDEifQ.sbAjZ52M3AyUBewxYiLb5uhZwtSFrfiuBFrGbAyi5Bw; Expires=Sun, 27 Sep 2020 15:40:07 GMT; HttpOnly
+
+{
+  "summary": "1234",
+  "date": "09-25-2020"
+}
+
+### update day
+PUT http://localhost:3001/api/v1/auth/days/dc091cc7-49a8-4268-81fa-0fb71bc4269a
+Content-Type: application/json
+Cookie: refresh_token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6InRlc3RAdGVzdC5jb20iLCJleHAiOiIyMDIwLTA5LTI3VDA5OjQwOjA3LjA1NDQxOS0wNjowMCIsImZpcnN0TmFtZSI6IiIsImlkIjoiNmVkZTZkMjktM2IxYi00Zjk3LThhN2EtZDQwZDc0MTZmYWFkIiwibGFzdE5hbWUiOiIiLCJuYW1lIjoidGVzdDEifQ.sbAjZ52M3AyUBewxYiLb5uhZwtSFrfiuBFrGbAyi5Bw; Expires=Sun, 27 Sep 2020 15:40:07 GMT; HttpOnly
+
+{
+  "summary": "iojefoij3efoijwefwefwefwef"
+}
+
+### delete task

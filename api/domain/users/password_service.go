@@ -56,4 +56,3 @@ func (self *PasswordService) HashId(id string) (idHash string) {
 	sha.Write([]byte(id))
 	return hex.EncodeToString(sha.Sum(nil))
 }
-

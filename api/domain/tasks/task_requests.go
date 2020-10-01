@@ -1,6 +1,7 @@
 package tasks
 
 import (
+	"fmt"
 	"github.com/labstack/echo/v4"
 )
 
@@ -14,11 +15,10 @@ func NewSubTasksByTaskIdRequestFromContext(c echo.Context) (request *SubTasksByT
 }
 
 type CreateTaskRequest struct {
-	Type      string `json:"type" db:"type"`
-	Task      string `json:"task" db:"task_id"`
-	Text      string `json:"text" db:"text"`
-	Completed bool   `json:"completed" db:"completed"`
-	Order     int    `json:"order" db:"order"`
+	Parent    string `json:"parent"`
+	Text      string `json:"text"`
+	Completed bool   `json:"completed"`
+	Order     int    `json:"order"`
 }
 
 func NewCreateTaskRequestFromContext(c echo.Context) (request *CreateTaskRequest, err error) {
@@ -29,6 +29,9 @@ func NewCreateTaskRequestFromContext(c echo.Context) (request *CreateTaskRequest
 	}
 
 	// todo sanitize html and text!!!!!!!
+	if request.Parent == "" {
+		return nil, fmt.Errorf("Parent cannot be null")
+	}
 
 	return request, nil
 }
@@ -36,7 +39,7 @@ func NewCreateTaskRequestFromContext(c echo.Context) (request *CreateTaskRequest
 type UpdateTaskRequest struct {
 	ID        string `json:"id"`
 	Type      string `json:"type"`
-	Task      string `json:"task"`
+	Parent    string `json:"parent"`
 	Text      string `json:"text"`
 	Completed bool   `json:"completed"`
 	Order     int    `json:"order"`

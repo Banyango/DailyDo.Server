@@ -49,4 +49,3 @@ func TestPasswordService_HashId_Same_WhenInputSame(t *testing.T) {
 
 	assert.Equal(t, id1, id2)
 }
-

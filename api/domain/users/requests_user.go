@@ -60,8 +60,8 @@ func NewCreatePasswordResetFromContext(c echo.Context) (request *CreatePasswordR
 }
 
 type UpdatePasswordRequest struct {
-	Email string
-	Token string
+	Email    string
+	Token    string
 	Password string
 }
 
@@ -80,7 +80,7 @@ func NewUpdatePasswordRequestFromContext(c echo.Context) (request *UpdatePasswor
 }
 
 type LoginRequest struct {
-	Email string
+	Email    string
 	Password string
 }
 

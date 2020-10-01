@@ -14,7 +14,6 @@ type IJWTService interface {
 }
 
 type JWTService struct {
-
 }
 
 func NewJWTService() *JWTService {

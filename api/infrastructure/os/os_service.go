@@ -11,7 +11,6 @@ type OSInterface interface {
 }
 
 type OSService struct {
-
 }
 
 func NewOSService() *OSService {

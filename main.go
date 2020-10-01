@@ -27,7 +27,7 @@ func main() {
 
 	db, err := sqlx.Connect("mysql", "fooduser:foodtest@/food_test?parseTime=true")
 	db.SetMaxIdleConns(0)
-	db.SetConnMaxLifetime(3*time.Second)
+	db.SetConnMaxLifetime(3 * time.Second)
 	defer db.Close()
 
 	if err != nil {

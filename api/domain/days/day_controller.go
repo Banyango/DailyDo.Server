@@ -125,3 +125,27 @@ func (self *DayController) UpdateDay(c echo.Context) (err error) {
 
 	return c.JSON(http.StatusOK, day)
 }
+
+// @Summary Delete day.
+// @Description Delete a day.
+// @Accept json
+// @Produce json
+// @Success 200
+// @Failure 400 {string} string "bad parameters"
+// @Failure 500 {string} string "Database error"
+// @Router /v1/Parent/{id} [delete]
+func (self *DayController) DeleteDay(c echo.Context) (err error) {
+	id := c.Param("id")
+
+	dayById := <-self.dayRepository.GetDayByIdAsync(id)
+	if dayById.Err != nil {
+		return utils.LogError(dayById.Err, http.StatusNotFound, "Parent not found")
+	}
+
+	result := self.dayRepository.Delete(id)
+	if result.Err != nil {
+		return utils.LogError(result.Err, http.StatusInternalServerError, "Error deleting Day")
+	}
+
+	return c.NoContent(http.StatusOK)
+}

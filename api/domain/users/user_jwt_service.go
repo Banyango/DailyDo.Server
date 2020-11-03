@@ -57,7 +57,7 @@ func (self *JWTService) CreateJWTToken(c echo.Context, objectId string, username
 func (self *JWTService) ExpireTokenImmediately(c echo.Context) {
 	cookie, _ := c.Cookie("refresh_token")
 	if cookie != nil {
-		cookie.Expires = time.Now()
+		cookie.Expires = time.Now().Add(-100 * time.Hour)
 		cookie.MaxAge = -1
 		c.SetCookie(cookie)
 	}

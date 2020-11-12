@@ -63,6 +63,7 @@ func InitRouter(echo *echo.Echo, db *sqlx.DB) {
 	restrictedGroup.GET("days", dayController.ListDays, pagination.Paginate())
 	restrictedGroup.POST("days", dayController.CreateDay)
 	restrictedGroup.PUT("days/:id", dayController.UpdateDay)
+	restrictedGroup.DELETE("days/:id", dayController.DeleteDay)
 	restrictedGroup.GET("days/:id/tasks", dayTaskController.ListTasksForDay)
 
 	// tasks

@@ -1,0 +1,1 @@
+alter table tasks modify task_order int;

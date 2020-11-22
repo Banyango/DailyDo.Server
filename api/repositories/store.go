@@ -1,6 +1,7 @@
 package repositories
 
 import (
+	"context"
 	"github.com/Banyango/gifoody_server/api/model"
 	"github.com/Banyango/gifoody_server/api/repositories/stores"
 	. "github.com/Banyango/gifoody_server/api/repositories/util"
@@ -13,6 +14,10 @@ type DBContext interface {
 	User() IUserRepository
 }
 
+type ISQLStore interface {
+	Execute(ctx context.Context, fn func(c context.Context) error) error
+}
+
 type IDayRepository interface {
 	Save(task model.Day) StoreResult
 	GetDaysAsync(userId string, limit int, offset int) StoreChannel
@@ -22,13 +27,15 @@ type IDayRepository interface {
 }
 
 type ITaskRepository interface {
-	GetTaskAsync(model.TaskQuery) StoreChannel
-	GetChildrenByTaskIdAsync(id string) StoreChannel
-	GetTasksByParentAsync(id string) StoreChannel
-	GetTaskByIdAsync(id string) StoreChannel
-	Save(task model.Task) StoreResult
-	UpdateAsync(task model.Task) StoreChannel
-	Delete(id string) StoreResult
+	ISQLStore
+	GetTaskAsync(query model.TaskQuery, ctx context.Context) StoreChannel
+	GetChildrenByTaskIdAsync(id string, ctx context.Context) StoreChannel
+	GetTasksByParentAsync(id string, ctx context.Context) StoreChannel
+	GetTaskByIdAsync(id string, ctx context.Context) StoreChannel
+	GetTaskByOrderIdAsync(id string, ctx context.Context) StoreChannel
+	Save(task model.Task, ctx context.Context) StoreResult
+	UpdateAsync(task model.Task, ctx context.Context) StoreChannel
+	Delete(id string, ctx context.Context) StoreResult
 }
 
 type IUserRepository interface {

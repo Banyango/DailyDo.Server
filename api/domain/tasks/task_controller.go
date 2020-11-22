@@ -1,6 +1,7 @@
 package tasks
 
 import (
+	"context"
 	"fmt"
 	"github.com/Banyango/gifoody_server/api/domain/users"
 	"github.com/Banyango/gifoody_server/api/infrastructure/collection"
@@ -24,7 +25,7 @@ func NewTaskController(taskRepository ITaskRepository, authService users.IUserAu
 }
 
 // @Summary List Parent.
-// @Description Get a paginated list of Parent.
+// @Description Get a paginated list of tasks.
 // @Accept json
 // @Produce json
 // @Param limit query string false "pagination limit"
@@ -33,17 +34,26 @@ func NewTaskController(taskRepository ITaskRepository, authService users.IUserAu
 // @Failure 400 {string} string "bad parameters"
 // @Failure 500 {string} string "Database error"
 // @Router /v1/Parent/ [get]
-func (self *TaskController) ListTask(c echo.Context) (err error) {
-	page := c.Get("Pagination").(pagination.Pagination)
+func (self *TaskController) ListTask(ec echo.Context) (err error) {
+	page := ec.Get("Pagination").(pagination.Pagination)
 
-	taskRequest := <-self.taskRepository.GetTaskAsync(model.TaskQuery{Limit: page.Limit, Offset: page.Offset, Type: "Parent"})
-	if taskRequest.Err != nil {
-		return echo.NewHTTPError(http.StatusInternalServerError, taskRequest.Err.Error())
+	var pagedResult pagination.PagedResult
+	err = self.taskRepository.Execute(ec.Request().Context(), func(c context.Context) error {
+		taskRequest := <-self.taskRepository.GetTaskAsync(model.TaskQuery{Limit: page.Limit, Offset: page.Offset, Type: "Parent"}, c)
+		if taskRequest.Err != nil {
+			return echo.NewHTTPError(http.StatusInternalServerError, taskRequest.Err.Error())
+		}
+
+		pagedResult = pagination.NewPagedResult("Parent", ec, taskRequest)
+
+		return nil
+	})
+
+	if err != nil {
+		return err
 	}
 
-	pagedResult := pagination.NewPagedResult("Parent", c, taskRequest)
-
-	return c.JSON(http.StatusOK, pagedResult)
+	return ec.JSON(http.StatusOK, pagedResult)
 }
 
 // @Summary Get Task.
@@ -60,12 +70,21 @@ func (self *TaskController) GetTask(c echo.Context) (err error) {
 		return echo.NewHTTPError(http.StatusBadRequest, "id not defined.")
 	}
 
-	taskRequest := <-self.taskRepository.GetTaskByIdAsync(id)
-	if taskRequest.Err != nil {
-		return echo.NewHTTPError(http.StatusInternalServerError, taskRequest.Err.Error())
+	var task model.Task
+	err = self.taskRepository.Execute(c.Request().Context(), func(c context.Context) error {
+		taskRequest := <-self.taskRepository.GetTaskByIdAsync(id, c)
+		if taskRequest.Err != nil {
+			return taskRequest.Err
+		}
+		task = taskRequest.Data.(model.Task)
+		return nil
+	})
+
+	if err != nil {
+		return echo.NewHTTPError(http.StatusInternalServerError, err)
 	}
 
-	return c.JSON(http.StatusOK, taskRequest.Data.(model.Task))
+	return c.JSON(http.StatusOK, task)
 }
 
 // @Summary List child items.
@@ -81,12 +100,22 @@ func (self *TaskController) GetTask(c echo.Context) (err error) {
 func (self *TaskController) ListItems(c echo.Context) (err error) {
 	id := c.Param("id")
 
-	taskRequest := <-self.taskRepository.GetChildrenByTaskIdAsync(id)
-	if taskRequest.Err != nil {
-		return echo.NewHTTPError(http.StatusInternalServerError, taskRequest.Err.Error())
+	var data interface{}
+	err = self.taskRepository.Execute(c.Request().Context(), func(c context.Context) error {
+		taskRequest := <-self.taskRepository.GetChildrenByTaskIdAsync(id, c)
+		if taskRequest.Err != nil {
+			return echo.NewHTTPError(http.StatusInternalServerError, taskRequest.Err.Error())
+		}
+
+		data = taskRequest.Data
+
+		return nil
+	})
+	if err != nil {
+		return err
 	}
 
-	return c.JSON(http.StatusOK, collection.Collection{Items:taskRequest.Data})
+	return c.JSON(http.StatusOK, collection.Collection{Items: data})
 }
 
 // @Summary List child items.
@@ -103,12 +132,22 @@ func (self *TaskController) ListTasks(c echo.Context) (err error) {
 
 	id := c.Param("id")
 
-	taskRequest := <-self.taskRepository.GetTasksByParentAsync(id)
-	if taskRequest.Err != nil {
-		return echo.NewHTTPError(http.StatusInternalServerError, taskRequest.Err.Error())
+	var data interface{}
+	err = self.taskRepository.Execute(c.Request().Context(), func(c context.Context) error {
+		taskRequest := <-self.taskRepository.GetTasksByParentAsync(id, c)
+		if taskRequest.Err != nil {
+			return echo.NewHTTPError(http.StatusInternalServerError, taskRequest.Err.Error())
+		}
+
+		data = taskRequest.Data
+
+		return nil
+	})
+	if err != nil {
+		return err
 	}
 
-	return c.JSON(http.StatusOK, collection.Collection{Items: taskRequest.Data})
+	return c.JSON(http.StatusOK, collection.Collection{Items: data})
 }
 
 // @Summary Create Parent.
@@ -132,11 +171,6 @@ func (self *TaskController) CreateTask(c echo.Context) (err error) {
 		return echo.NewHTTPError(http.StatusUnauthorized, "Unauthorized")
 	}
 
-	taskById := <-self.taskRepository.GetTaskByIdAsync(request.Parent)
-	if taskById.Err != nil {
-		return utils.LogError(err, http.StatusNotFound, fmt.Sprintf("Parent id={%s} not found", request.Parent))
-	}
-
 	task := model.Task{
 		ID:        uuid.New().String(),
 		Type:      "Task",
@@ -147,9 +181,22 @@ func (self *TaskController) CreateTask(c echo.Context) (err error) {
 		UserID:    user.Id,
 	}
 
-	result := self.taskRepository.Save(task)
-	if result.Err != nil {
-		return utils.LogError(result.Err, http.StatusInternalServerError, "Error saving task")
+	err = self.taskRepository.Execute(c.Request().Context(), func(c context.Context) error {
+		taskById := <-self.taskRepository.GetTaskByIdAsync(request.Parent, c)
+		if taskById.Err != nil {
+			return utils.LogError(err, http.StatusNotFound, fmt.Sprintf("Parent id={%s} not found", request.Parent))
+		}
+
+		result := self.taskRepository.Save(task, c)
+		if result.Err != nil {
+			return utils.LogError(result.Err, http.StatusInternalServerError, "Error saving task")
+		}
+
+		return nil
+	})
+
+	if err != nil {
+		return err
 	}
 
 	return c.JSON(http.StatusCreated, task)
@@ -164,39 +211,47 @@ func (self *TaskController) CreateTask(c echo.Context) (err error) {
 // @Failure 400 {string} string "bad parameters"
 // @Failure 500 {string} string "Database error"
 // @Router /v1/tasks/{id}/subtasks [post]
-func (self *TaskController) CreateSubTask(c echo.Context) (err error) {
-	request, err := NewCreateTaskRequestFromContext(c)
+func (self *TaskController) CreateSubTask(ec echo.Context) (err error) {
+	request, err := NewCreateTaskRequestFromContext(ec)
 	if err != nil {
 		return utils.LogError(err, http.StatusBadRequest, "Bad request")
 	}
 
-	id := c.Param("id")
-	taskById := <-self.taskRepository.GetTaskByIdAsync(id)
-	if taskById.Err != nil {
-		return utils.LogError(err, http.StatusNotFound, fmt.Sprintf("Parent id={%s} not found", id))
-	}
-
-	user, err := self.authService.GetLoggedInUser(c)
+	user, err := self.authService.GetLoggedInUser(ec)
 	if err != nil {
 		return echo.NewHTTPError(http.StatusUnauthorized, "Unauthorized")
 	}
 
-	task := model.Task{
-		ID:        uuid.New().String(),
-		Type:      "SubTask",
-		Text:      null.NewString(request.Text, true),
-		TaskID:    null.NewString(id, true),
-		Order:     request.Order,
-		Completed: request.Completed,
-		UserID:    user.Id,
+	var task model.Task
+	err = self.taskRepository.Execute(ec.Request().Context(), func(c context.Context) error {
+		id := ec.Param("id")
+		taskById := <-self.taskRepository.GetTaskByIdAsync(id, c)
+		if taskById.Err != nil {
+			return utils.LogError(err, http.StatusNotFound, fmt.Sprintf("Parent id={%s} not found", id))
+		}
+
+		task = model.Task{
+			ID:        uuid.New().String(),
+			Type:      "SubTask",
+			Text:      null.NewString(request.Text, true),
+			TaskID:    null.NewString(id, true),
+			Order:     request.Order,
+			Completed: request.Completed,
+			UserID:    user.Id,
+		}
+
+		result := self.taskRepository.Save(task, c)
+		if result.Err != nil {
+			return utils.LogError(result.Err, http.StatusInternalServerError, "Error saving sub-task")
+		}
+
+		return nil
+	})
+	if err != nil {
+		return err
 	}
 
-	result := self.taskRepository.Save(task)
-	if result.Err != nil {
-		return utils.LogError(result.Err, http.StatusInternalServerError, "Error saving sub-task")
-	}
-
-	return c.JSON(http.StatusCreated, task)
+	return ec.JSON(http.StatusCreated, task)
 }
 
 // @Summary Create Summary.
@@ -214,16 +269,12 @@ func (self *TaskController) CreateSummary(c echo.Context) (err error) {
 		return utils.LogError(err, http.StatusBadRequest, "Bad request")
 	}
 
-	id := c.Param("id")
-	taskById := <-self.taskRepository.GetTaskByIdAsync(id)
-	if taskById.Err != nil {
-		return utils.LogError(err, http.StatusNotFound, fmt.Sprintf("Parent id={%s} not found", id))
-	}
-
 	user, err := self.authService.GetLoggedInUser(c)
 	if err != nil {
 		return echo.NewHTTPError(http.StatusUnauthorized, "Unauthorized")
 	}
+
+	id := c.Param("id")
 
 	task := model.Task{
 		ID:        uuid.New().String(),
@@ -235,9 +286,22 @@ func (self *TaskController) CreateSummary(c echo.Context) (err error) {
 		UserID:    user.Id,
 	}
 
-	result := self.taskRepository.Save(task)
-	if result.Err != nil {
-		return utils.LogError(result.Err, http.StatusInternalServerError, "Error saving sub-task")
+	err = self.taskRepository.Execute(c.Request().Context(), func(c context.Context) error {
+		taskById := <-self.taskRepository.GetTaskByIdAsync(id, c)
+		if taskById.Err != nil {
+			return utils.LogError(err, http.StatusNotFound, fmt.Sprintf("Parent id={%s} not found", id))
+		}
+
+		result := self.taskRepository.Save(task, c)
+		if result.Err != nil {
+			return utils.LogError(result.Err, http.StatusInternalServerError, "Error saving sub-task")
+		}
+
+		return nil
+	})
+
+	if err != nil {
+		return err
 	}
 
 	return c.JSON(http.StatusCreated, task)
@@ -254,14 +318,21 @@ func (self *TaskController) CreateSummary(c echo.Context) (err error) {
 func (self *TaskController) DeleteTask(c echo.Context) (err error) {
 	id := c.Param("id")
 
-	taskById := <-self.taskRepository.GetTaskByIdAsync(id)
-	if taskById.Err != nil {
-		return utils.LogError(taskById.Err, http.StatusNotFound, "Parent not found")
-	}
+	err = self.taskRepository.Execute(c.Request().Context(), func(c context.Context) error {
+		taskById := <-self.taskRepository.GetTaskByIdAsync(id, c)
+		if taskById.Err != nil {
+			return utils.LogError(taskById.Err, http.StatusNotFound, "Parent not found")
+		}
 
-	result := self.taskRepository.Delete(id)
-	if result.Err != nil {
-		return utils.LogError(result.Err, http.StatusInternalServerError, "Error deleting task")
+		result := self.taskRepository.Delete(id, c)
+		if result.Err != nil {
+			return utils.LogError(result.Err, http.StatusInternalServerError, "Error deleting task")
+		}
+
+		return nil
+	})
+	if err != nil {
+		return err
 	}
 
 	return c.NoContent(http.StatusOK)
@@ -282,19 +353,28 @@ func (self *TaskController) UpdateTask(c echo.Context) (err error) {
 		return utils.LogError(err, http.StatusBadRequest, "Bad request")
 	}
 
-	taskById := <-self.taskRepository.GetTaskByIdAsync(request.ID)
-	if taskById.Err != nil {
-		return utils.LogError(taskById.Err, http.StatusNotFound, fmt.Sprintf("Parent id={%s} not found", request.ID))
-	}
+	var task model.Task
+	err = self.taskRepository.Execute(c.Request().Context(), func(c context.Context) error {
+		taskById := <-self.taskRepository.GetTaskByIdAsync(request.ID, c)
+		if taskById.Err != nil {
+			return utils.LogError(taskById.Err, http.StatusNotFound, fmt.Sprintf("Parent id={%s} not found", request.ID))
+		}
 
-	task := taskById.Data.(model.Task)
-	task.Text = null.NewString(request.Text, true)
-	task.Order = request.Order
-	task.Completed = request.Completed
+		task = taskById.Data.(model.Task)
+		task.Text = null.NewString(request.Text, true)
+		task.Order = request.Order
+		task.Completed = request.Completed
 
-	result := <-self.taskRepository.UpdateAsync(task)
-	if result.Err != nil {
-		return utils.LogError(result.Err, http.StatusInternalServerError, "Error deleting task")
+		result := <-self.taskRepository.UpdateAsync(task, c)
+		if result.Err != nil {
+			return utils.LogError(result.Err, http.StatusInternalServerError, "Error deleting task")
+		}
+
+		return nil
+	})
+
+	if err != nil {
+		return err
 	}
 
 	return c.JSON(http.StatusOK, task)

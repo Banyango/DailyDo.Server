@@ -35,6 +35,7 @@ func InitRouter(echo *echo.Echo, db *sqlx.DB) {
 	dayController := days.NewDayController(timeService, store.Day(), authService)
 	dayTaskController := days.NewDayTaskController(timeService, store.Day(), store.Task(), authService)
 	taskController := tasks.NewTaskController(store.Task(), authService)
+	taskOrderController := tasks.NewTaskOrderController(store.Task(), authService)
 	userController := users.NewUserController(store.User(), mailService, templateService, authService)
 
 	// index
@@ -71,10 +72,14 @@ func InitRouter(echo *echo.Echo, db *sqlx.DB) {
 	restrictedGroup.GET("tasks/:id", taskController.GetTask)
 	restrictedGroup.GET("tasks/:id/tasks", taskController.ListTasks)
 	restrictedGroup.GET("tasks/:id/items", taskController.ListItems, pagination.Paginate())
+
 	// todo need task_id on body
 	restrictedGroup.POST("tasks", taskController.CreateTask)
 	restrictedGroup.PUT("tasks/:id", taskController.UpdateTask)
 	restrictedGroup.DELETE("tasks/:id", taskController.DeleteTask)
 	restrictedGroup.POST("tasks/:id/summaries", taskController.CreateSummary)
 	restrictedGroup.POST("tasks/:id/subtasks", taskController.CreateSubTask)
+
+	// task order
+	restrictedGroup.POST("tasks/:id/order", taskOrderController.UpdateTaskOrder)
 }

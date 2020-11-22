@@ -18,7 +18,7 @@ type CreateTaskRequest struct {
 	Parent    string `json:"parent"`
 	Text      string `json:"text"`
 	Completed bool   `json:"completed"`
-	Order     int    `json:"order"`
+	Order     string `json:"order"`
 }
 
 func NewCreateTaskRequestFromContext(c echo.Context) (request *CreateTaskRequest, err error) {
@@ -42,7 +42,7 @@ type UpdateTaskRequest struct {
 	Parent    string `json:"parent"`
 	Text      string `json:"text"`
 	Completed bool   `json:"completed"`
-	Order     int    `json:"order"`
+	Order     string `json:"order"`
 }
 
 func NewUpdateTaskRequestFromContext(c echo.Context) (request *UpdateTaskRequest, err error) {

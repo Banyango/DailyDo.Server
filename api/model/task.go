@@ -12,7 +12,7 @@ type Task struct {
 	Text      null.String `json:"text" db:"text"`
 	TaskID    null.String `json:"parent" db:"task_id"`
 	Completed bool        `json:"completed" db:"completed"`
-	Order     string      `json:"order" db:"task_order"`
+	Order     null.String `json:"order" db:"task_order"`
 }
 
 //TaskQuery - task queries

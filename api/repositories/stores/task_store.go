@@ -90,7 +90,14 @@ func (self *TaskSQLStore) GetTasksByParentAsync(id string, ctx context.Context) 
 	tx := ctx.Value(TransactionContextKey).(*sqlx.Tx)
 	go func() {
 		var results []Task
-		rows, err := tx.Query(`SELECT s.id, s.task_id, s.text, s.completed, s.task_order FROM tasks s WHERE s.task_id = ? AND s.discriminator = 'Task' order by s.task_order`, id)
+		rows, err := tx.Query(`WITH RECURSIVE s AS
+                   ( SELECT * FROM tasks
+                     WHERE task_order = ?
+                     UNION
+                     SELECT f.*
+                     FROM tasks AS f, s AS a
+                     WHERE f.task_order = a.id and f.task_id = ?)
+					 SELECT s.id, s.task_id, s.text, s.completed, s.task_order FROM s where s.discriminator = 'Task'`, id, id )
 		if err != nil {
 			storeChan <- StoreResult{Data: nil, Err: err}
 			return
@@ -98,7 +105,9 @@ func (self *TaskSQLStore) GetTasksByParentAsync(id string, ctx context.Context) 
 		defer rows.Close()
 
 		for rows.Next() {
-			task := Task{}
+			task := Task{
+				Type:"Task",
+			}
 			err := rows.Scan(&task.ID, &task.TaskID, &task.Text, &task.Completed, &task.Order)
 			if err != nil {
 				storeChan <- StoreResult{Data: nil, Err: err}
@@ -117,7 +126,14 @@ func (self *TaskSQLStore) GetChildrenByTaskIdAsync(id string, ctx context.Contex
 	tx := ctx.Value(TransactionContextKey).(*sqlx.Tx)
 	go func() {
 		var results []Task
-		rows, err := tx.Query(`SELECT s.id, s.discriminator, s.task_id, s.text, s.completed, s.task_order FROM tasks s WHERE s.task_id = ? AND ( s.discriminator = 'SubTask' or s.discriminator = 'Summary') ORDER BY s.task_order`, id, )
+		rows, err := tx.Query(`WITH RECURSIVE s AS
+                   ( SELECT * FROM tasks
+                     WHERE task_order = ?
+                     UNION
+                     SELECT f.*
+                     FROM tasks AS f, s AS a
+                     WHERE f.task_order = a.id and f.task_id = ?)
+					 SELECT s.id, s.discriminator, s.task_id, s.text, s.completed, s.task_order FROM s where s.discriminator in ('SubTask', 'Summary')`, id, id)
 		if err != nil {
 			storeChan <- StoreResult{Data: nil, Err: err}
 			return
@@ -144,7 +160,7 @@ func (self *TaskSQLStore) Save(task Task, ctx context.Context) StoreResult {
 	_, err := tx.Exec("INSERT INTO tasks "+
 		"(id, discriminator, task_id, text, completed, task_order, user_id) "+
 		"values (?, ?, ?, ?, ?, ?, ?)",
-		task.ID, task.Type, task.TaskID, task.Text, task.Completed, task.Completed, task.UserID)
+		task.ID, task.Type, task.TaskID, task.Text, task.Completed, task.Order, task.UserID)
 	return StoreResult{
 		Data:  task,
 		Total: 1,

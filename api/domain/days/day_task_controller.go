@@ -4,6 +4,7 @@ import (
 	"context"
 	"github.com/Banyango/gifoody_server/api/domain/users"
 	"github.com/Banyango/gifoody_server/api/infrastructure/time"
+	"github.com/Banyango/gifoody_server/api/infrastructure/utils"
 	"github.com/Banyango/gifoody_server/api/model"
 	"github.com/Banyango/gifoody_server/api/repositories"
 	"github.com/labstack/echo/v4"
@@ -56,21 +57,21 @@ func (self *DayTaskController) ListTasksForDay(c echo.Context) (err error) {
 
 		day := dayRequest.Data.(model.Day)
 
-		tasks := <-self.taskRepository.GetTasksByParentAsync(day.ParentTaskID, c)
-		if tasks.Err != nil {
-			return echo.NewHTTPError(http.StatusInternalServerError, dayRequest.Err.Error())
+		tasksQuery := <-self.taskRepository.GetTasksByParentAsync(day.ParentTaskID, c)
+		if tasksQuery.Err != nil {
+			return utils.LogError(tasksQuery.Err, http.StatusInternalServerError, tasksQuery.Err.Error())
 		}
 
-		for _, task := range tasks.Data.([]model.Task) {
+		for _, task := range tasksQuery.Data.([]model.Task) {
 
-			children := <-self.taskRepository.GetChildrenByTaskIdAsync(task.ID, c)
-			if children.Err != nil {
-				return echo.NewHTTPError(http.StatusInternalServerError, dayRequest.Err.Error())
+			childrenQuery := <-self.taskRepository.GetChildrenByTaskIdAsync(task.ID, c)
+			if childrenQuery.Err != nil {
+				return utils.LogError(childrenQuery.Err, http.StatusInternalServerError, childrenQuery.Err.Error())
 			}
 
 			response.Tasks = append(response.Tasks, TaskResponse{
-				Task: task,
-				Children: children.Data.([]model.Task),
+				Task:     task,
+				Children: childrenQuery.Data.([]model.Task),
 			})
 		}
 

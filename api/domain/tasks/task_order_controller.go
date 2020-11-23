@@ -8,6 +8,7 @@ import (
 	"github.com/Banyango/gifoody_server/api/repositories"
 	"github.com/labstack/echo/v4"
 	"golang.org/x/net/context"
+	"gopkg.in/guregu/null.v4"
 	"net/http"
 )
 
@@ -86,7 +87,7 @@ func (self *TaskOrderController) UpdateTaskOrder(c echo.Context) (err error) {
 			taskToReParent := childrenOfNewParentQuery.Data.(model.Task)
 
 			// Update them to point to task we are updating
-			taskToReParent.Order = taskToUpdate.ID
+			taskToReParent.Order = null.NewString(taskToUpdate.ID, true)
 
 			result := <-self.taskRepository.UpdateAsync(taskToReParent, c)
 			if result.Err != nil {
@@ -94,7 +95,7 @@ func (self *TaskOrderController) UpdateTaskOrder(c echo.Context) (err error) {
 			}
 		}
 
-		taskToUpdate.Order = request.NewParent
+		taskToUpdate.Order = null.NewString(request.NewParent, true)
 
 		result := <-self.taskRepository.UpdateAsync(taskToUpdate, c)
 		if result.Err != nil {

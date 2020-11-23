@@ -175,16 +175,16 @@ func (self *TaskController) CreateTask(c echo.Context) (err error) {
 		ID:        uuid.New().String(),
 		Type:      "Task",
 		Text:      null.NewString(request.Text, true),
-		Order:     request.Order,
+		Order:     null.NewString(request.Order, true),
 		Completed: request.Completed,
 		TaskID:    null.NewString(request.Parent, true),
 		UserID:    user.Id,
 	}
 
 	err = self.taskRepository.Execute(c.Request().Context(), func(c context.Context) error {
-		taskById := <-self.taskRepository.GetTaskByIdAsync(request.Parent, c)
-		if taskById.Err != nil {
-			return utils.LogError(err, http.StatusNotFound, fmt.Sprintf("Parent id={%s} not found", request.Parent))
+		parentTaskQuery := <-self.taskRepository.GetTaskByIdAsync(request.Parent, c)
+		if parentTaskQuery.Err != nil {
+			return utils.LogError(parentTaskQuery.Err, http.StatusNotFound, fmt.Sprintf("Parent id={%s} not found", request.Parent))
 		}
 
 		result := self.taskRepository.Save(task, c)
@@ -235,7 +235,7 @@ func (self *TaskController) CreateSubTask(ec echo.Context) (err error) {
 			Type:      "SubTask",
 			Text:      null.NewString(request.Text, true),
 			TaskID:    null.NewString(id, true),
-			Order:     request.Order,
+			Order:     null.NewString(request.Order, true),
 			Completed: request.Completed,
 			UserID:    user.Id,
 		}
@@ -281,7 +281,7 @@ func (self *TaskController) CreateSummary(c echo.Context) (err error) {
 		Type:      "Summary",
 		Text:      null.NewString(request.Text, true),
 		TaskID:    null.NewString(id, true),
-		Order:     request.Order,
+		Order:     null.NewString(request.Order, true),
 		Completed: request.Completed,
 		UserID:    user.Id,
 	}
@@ -362,7 +362,11 @@ func (self *TaskController) UpdateTask(c echo.Context) (err error) {
 
 		task = taskById.Data.(model.Task)
 		task.Text = null.NewString(request.Text, true)
-		task.Order = request.Order
+
+		if request.Order != "" {
+			task.Order = null.NewString(request.Order, true)
+		}
+
 		task.Completed = request.Completed
 
 		result := <-self.taskRepository.UpdateAsync(task, c)

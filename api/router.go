@@ -15,6 +15,11 @@ import (
 	"github.com/jmoiron/sqlx"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
+	"net/http"
+)
+
+var (
+	Unauthorized = echo.NewHTTPError(http.StatusUnauthorized, "Unauthorized")
 )
 
 func InitRouter(echo *echo.Echo, db *sqlx.DB) {
@@ -55,6 +60,9 @@ func InitRouter(echo *echo.Echo, db *sqlx.DB) {
 	restrictedGroup.Use(middleware.JWTWithConfig(middleware.JWTConfig{
 		SigningKey:  []byte(jwtSecret),
 		TokenLookup: "cookie:refresh_token",
+		ErrorHandler: func(e error) error {
+			return Unauthorized
+		},
 	}))
 
 	// users

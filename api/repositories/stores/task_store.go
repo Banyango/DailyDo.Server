@@ -70,12 +70,12 @@ func (self *TaskSQLStore) GetTaskByIdAsync(id string, ctx context.Context) Store
 	return storeChan
 }
 
-func (self *TaskSQLStore) GetTaskByOrderIdAsync(id string, ctx context.Context) StoreChannel {
+func (self *TaskSQLStore) GetTaskByOrderIdAsync(parentId string, orderId string, ctx context.Context) StoreChannel {
 	var storeChan = make(StoreChannel, 1)
 	tx := ctx.Value(TransactionContextKey).(*sqlx.Tx)
 	go func() {
 		user := Task{}
-		err := tx.Get(&user, "SELECT * from tasks t WHERE t.task_order = ?", id)
+		err := tx.Get(&user, "SELECT * from tasks t WHERE t.task_id = ? and t.task_order = ?", parentId, orderId)
 		storeChan <- StoreResult {
 			Data:  user,
 			Total: 1,

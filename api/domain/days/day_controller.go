@@ -89,7 +89,9 @@ func (self *DayController) CreateDay(c echo.Context) (err error) {
 		return utils.LogError(result.Err, http.StatusInternalServerError, "Error saving day")
 	}
 
-	return c.JSON(http.StatusCreated, result.Data.(model.Day))
+	dayResult := result.Data.(model.Day)
+
+	return c.JSON(http.StatusCreated, &dayResult)
 }
 
 // @Summary Update Day.

@@ -59,13 +59,10 @@ func (self *TaskSQLStore) GetMaxOrder(id string, ctx context.Context) StoreChann
 	var storeChan = make(StoreChannel, 1)
 	tx := ctx.Value(TransactionContextKey).(*sqlx.Tx)
 	go func() {
-		max := new(int)
-		err := tx.Get(&max, "SELECT max(t.task_order) from tasks t WHERE t.task_id = ?", id)
-		storeChan <- StoreResult{
-			Data:  max,
-			Total: 1,
-			Err:   err,
-		}
+		row := tx.QueryRow(`SELECT max(t.task_order) as maxOrder from tasks t WHERE t.task_id = ?`, id)
+		maxOrder := new(int)
+		err := row.Scan(&maxOrder)
+		storeChan <- StoreResult{Data: maxOrder, Err: err}
 	}()
 	return storeChan
 }

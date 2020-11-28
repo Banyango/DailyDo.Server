@@ -193,7 +193,7 @@ func (self *TaskController) CreateTask(c echo.Context) (err error) {
 		}
 
 		if max:= maxOrderQuery.Data.(*int); max != nil {
-			task.Order = *max
+			task.Order = *max+1
 		}
 
 		result := self.taskRepository.Save(task, c)
@@ -255,7 +255,7 @@ func (self *TaskController) CreateSubTask(ec echo.Context) (err error) {
 		}
 
 		if max:= maxOrderQuery.Data.(*int); max != nil {
-			task.Order = *max
+			task.Order = *max+1
 		}
 
 		result := self.taskRepository.Save(task, c)
@@ -453,17 +453,22 @@ func (self *TaskController) UpdateTaskOrder(c echo.Context) (err error) {
 		}
 
 		tasks = tasks.Filter(func(task model.Task) bool {
-			return task.ID == request.TaskId
+			return task.ID != request.TaskId
 		})
 
 		index := -1
 		for i, t := range tasks {
 			if t.ID == request.NewParent {
 				index = i
+				break
 			}
 		}
 
-		tasks.Insert(index+1, taskToUpdate)
+		if taskToUpdate.Order <= index {
+			tasks = tasks.Insert(index+1, taskToUpdate)
+		} else {
+			tasks = tasks.Insert(index, taskToUpdate)
+		}
 
 		for i, t := range tasks {
 			t.Order = i

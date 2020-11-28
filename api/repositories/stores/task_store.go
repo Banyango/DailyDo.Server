@@ -55,6 +55,21 @@ func (self *TaskSQLStore) GetTaskAsync(query TaskQuery, ctx context.Context) Sto
 	return storeChan
 }
 
+func (self *TaskSQLStore) GetMaxOrder(id string, ctx context.Context) StoreChannel {
+	var storeChan = make(StoreChannel, 1)
+	tx := ctx.Value(TransactionContextKey).(*sqlx.Tx)
+	go func() {
+		max := new(int)
+		err := tx.Get(&max, "SELECT max(t.task_order) from tasks t WHERE t.task_id = ?", id)
+		storeChan <- StoreResult{
+			Data:  max,
+			Total: 1,
+			Err:   err,
+		}
+	}()
+	return storeChan
+}
+
 func (self *TaskSQLStore) GetTaskByIdAsync(id string, ctx context.Context) StoreChannel {
 	var storeChan = make(StoreChannel, 1)
 	tx := ctx.Value(TransactionContextKey).(*sqlx.Tx)
@@ -90,14 +105,7 @@ func (self *TaskSQLStore) GetTasksByParentAsync(id string, ctx context.Context) 
 	tx := ctx.Value(TransactionContextKey).(*sqlx.Tx)
 	go func() {
 		var results []Task
-		rows, err := tx.Query(`WITH RECURSIVE s AS
-                   ( SELECT * FROM tasks
-                     WHERE task_order = ?
-                     UNION
-                     SELECT f.*
-                     FROM tasks AS f, s AS a
-                     WHERE f.task_order = a.id and f.task_id = ?)
-					 SELECT s.id, s.task_id, s.text, s.completed, s.task_order FROM s where s.discriminator = 'Task'`, id, id )
+		rows, err := tx.Query(`SELECT s.id, s.task_id, s.text, s.completed, s.task_order FROM tasks s WHERE s.task_id = ? AND s.discriminator = 'Task' order by s.task_order`, id)
 		if err != nil {
 			storeChan <- StoreResult{Data: nil, Err: err}
 			return
@@ -126,14 +134,7 @@ func (self *TaskSQLStore) GetChildrenByTaskIdAsync(id string, ctx context.Contex
 	tx := ctx.Value(TransactionContextKey).(*sqlx.Tx)
 	go func() {
 		var results []Task
-		rows, err := tx.Query(`WITH RECURSIVE s AS
-                   ( SELECT * FROM tasks
-                     WHERE task_order = ?
-                     UNION
-                     SELECT f.*
-                     FROM tasks AS f, s AS a
-                     WHERE f.task_order = a.id and f.task_id = ?)
-					 SELECT s.id, s.discriminator, s.task_id, s.text, s.completed, s.task_order FROM s where s.discriminator in ('SubTask', 'Summary')`, id, id)
+		rows, err := tx.Query(`SELECT s.id, s.discriminator, s.task_id, s.text, s.completed, s.task_order FROM tasks s WHERE s.task_id = ? AND ( s.discriminator = 'SubTask' or s.discriminator = 'Summary') ORDER BY s.task_order`, id, )
 		if err != nil {
 			storeChan <- StoreResult{Data: nil, Err: err}
 			return
@@ -171,7 +172,17 @@ func (self *TaskSQLStore) Save(task Task, ctx context.Context) StoreResult {
 func (self *TaskSQLStore) UpdateAsync(task Task, ctx context.Context) StoreChannel {
 	var storeChan = make(StoreChannel, 1)
 	tx := ctx.Value(TransactionContextKey).(*sqlx.Tx)
+
+	// todo all this wrapper code is yucky.
+	//wg := ctx.Value(TransactionWaitGroup)
+	//if wg != nil {
+	//	wg.(*sync.WaitGroup).Add(1)
+	//}
+
 	go func() {
+		//if wg != nil {
+		//	defer wg.(*sync.WaitGroup).Done()
+		//}
 		_, err := tx.NamedExec("UPDATE tasks SET `text`=:text, task_order=:task_order, completed=:completed WHERE id=:id", &task)
 		storeChan <- StoreResult{
 			Data:  task,
@@ -179,6 +190,7 @@ func (self *TaskSQLStore) UpdateAsync(task Task, ctx context.Context) StoreChann
 			Err:   err,
 		}
 	}()
+
 	return storeChan
 }
 

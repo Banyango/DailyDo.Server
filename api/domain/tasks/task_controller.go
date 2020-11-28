@@ -175,7 +175,7 @@ func (self *TaskController) CreateTask(c echo.Context) (err error) {
 		ID:        uuid.New().String(),
 		Type:      "Task",
 		Text:      null.NewString(request.Text, true),
-		Order:     null.NewString(request.Order, true),
+		Order:     0,
 		Completed: request.Completed,
 		TaskID:    null.NewString(request.Parent, true),
 		UserID:    user.Id,
@@ -185,6 +185,15 @@ func (self *TaskController) CreateTask(c echo.Context) (err error) {
 		parentTaskQuery := <-self.taskRepository.GetTaskByIdAsync(request.Parent, c)
 		if parentTaskQuery.Err != nil {
 			return utils.LogError(parentTaskQuery.Err, http.StatusNotFound, fmt.Sprintf("Parent id={%s} not found", request.Parent))
+		}
+
+		maxOrderQuery := <- self.taskRepository.GetMaxOrder(request.Parent, c)
+		if maxOrderQuery.Err != nil {
+			return utils.LogError(maxOrderQuery.Err, http.StatusInternalServerError, "Error with max order")
+		}
+
+		if max:= maxOrderQuery.Data.(*int); max != nil {
+			task.Order = *max
 		}
 
 		result := self.taskRepository.Save(task, c)
@@ -235,9 +244,18 @@ func (self *TaskController) CreateSubTask(ec echo.Context) (err error) {
 			Type:      "SubTask",
 			Text:      null.NewString(request.Text, true),
 			TaskID:    null.NewString(id, true),
-			Order:     null.NewString(request.Order, true),
+			Order:     0,
 			Completed: request.Completed,
 			UserID:    user.Id,
+		}
+
+		maxOrderQuery := <- self.taskRepository.GetMaxOrder(id, c)
+		if maxOrderQuery.Err != nil {
+			return utils.LogError(maxOrderQuery.Err, http.StatusInternalServerError, "Error with max order")
+		}
+
+		if max:= maxOrderQuery.Data.(*int); max != nil {
+			task.Order = *max
 		}
 
 		result := self.taskRepository.Save(task, c)
@@ -281,7 +299,7 @@ func (self *TaskController) CreateSummary(c echo.Context) (err error) {
 		Type:      "Summary",
 		Text:      null.NewString(request.Text, true),
 		TaskID:    null.NewString(id, true),
-		Order:     null.NewString(request.Order, true),
+		Order:     0,
 		Completed: request.Completed,
 		UserID:    user.Id,
 	}
@@ -290,6 +308,15 @@ func (self *TaskController) CreateSummary(c echo.Context) (err error) {
 		taskById := <-self.taskRepository.GetTaskByIdAsync(id, c)
 		if taskById.Err != nil {
 			return utils.LogError(err, http.StatusNotFound, fmt.Sprintf("Parent id={%s} not found", id))
+		}
+
+		maxOrderQuery := <- self.taskRepository.GetMaxOrder(id, c)
+		if maxOrderQuery.Err != nil {
+			return utils.LogError(maxOrderQuery.Err, http.StatusInternalServerError, "Error with max order")
+		}
+
+		if max:= maxOrderQuery.Data.(*int); max != nil {
+			task.Order = *max
 		}
 
 		result := self.taskRepository.Save(task, c)
@@ -363,10 +390,6 @@ func (self *TaskController) UpdateTask(c echo.Context) (err error) {
 		task = taskById.Data.(model.Task)
 		task.Text = null.NewString(request.Text, true)
 
-		if request.Order != "" {
-			task.Order = null.NewString(request.Order, true)
-		}
-
 		task.Completed = request.Completed
 
 		result := <-self.taskRepository.UpdateAsync(task, c)
@@ -383,3 +406,76 @@ func (self *TaskController) UpdateTask(c echo.Context) (err error) {
 
 	return c.JSON(http.StatusOK, task)
 }
+
+// @Summary Update the order of a task.
+// @Description Update the order.
+// @Accept json
+// @Produce json
+// @Success 201
+// @Failure 400 {string} string "bad parameters"
+// @Failure 500 {string} string "Database error"
+// @Router /v1/tasks/:id/order [post]
+func (self *TaskController) UpdateTaskOrder(c echo.Context) (err error) {
+	id := c.Param("id")
+	if id == "" {
+		return echo.NewHTTPError(http.StatusBadRequest, "Id not defined.")
+	}
+
+	request, err := NewUpdateTaskOrderRequestFromContext(c)
+	if err != nil {
+		return utils.LogError(err, http.StatusBadRequest, "Bad request")
+	}
+
+	var taskToUpdate model.Task
+	err = self.taskRepository.Execute(c.Request().Context(), func(c context.Context) error {
+
+		taskToUpdateQuery := <- self.taskRepository.GetTaskByIdAsync(id, c)
+		if taskToUpdateQuery.Err != nil {
+			return utils.LogError(err, http.StatusNotFound, "Not Found.")
+		}
+
+		taskToUpdate = taskToUpdateQuery.Data.(model.Task)
+
+		// Get all tasks for parent.
+		var tasks model.Tasks
+		if taskToUpdate.Type == "Task" {
+			childrenOfNewParentQuery := <-self.taskRepository.GetTasksByParentAsync(taskToUpdate.TaskID.String, c)
+			if childrenOfNewParentQuery.Err != nil {
+				return utils.LogError(err, http.StatusInternalServerError, err.Error())
+			}
+			tasks = model.Tasks{}.Append(childrenOfNewParentQuery.Data.([]model.Task)...)
+		} else {
+			childrenOfNewParentQuery := <-self.taskRepository.GetChildrenByTaskIdAsync(taskToUpdate.TaskID.String, c)
+			if childrenOfNewParentQuery.Err != nil {
+				return utils.LogError(err, http.StatusInternalServerError, err.Error())
+			}
+			tasks = model.Tasks{}.Append(childrenOfNewParentQuery.Data.([]model.Task)...)
+		}
+
+		tasks = tasks.Filter(func(task model.Task) bool {
+			return task.ID == request.TaskId
+		})
+
+		index := -1
+		for i, t := range tasks {
+			if t.ID == request.NewParent {
+				index = i
+			}
+		}
+
+		tasks.Insert(index+1, taskToUpdate)
+
+		for i, t := range tasks {
+			t.Order = i
+			err := <- self.taskRepository.UpdateAsync(t, c)
+			if err.Err != nil {
+				return utils.LogError(err.Err, http.StatusInternalServerError, "error updating order")
+			}
+		}
+
+		return nil
+	})
+
+	return c.JSON(http.StatusOK, taskToUpdate)
+}
+

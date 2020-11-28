@@ -8,15 +8,16 @@ import (
 )
 
 type StoreResult struct {
-	Data  interface{}
-	Total int
-	Err   error
+	Data      interface{}
+	Total     int
+	Err       error
 }
 
 type StoreChannel chan StoreResult
-type SqlTransaction string
+type SQLContextKey string
 
-var TransactionContextKey SqlTransaction = "SqlTransaction";
+var TransactionContextKey SQLContextKey = "Transaction"
+var TransactionWaitGroup SQLContextKey = "WaitGroup"
 
 type SqlStore struct {
 	Db *sqlx.DB

@@ -15,10 +15,9 @@ func NewSubTasksByTaskIdRequestFromContext(c echo.Context) (request *SubTasksByT
 }
 
 type CreateTaskRequest struct {
-	Parent    string `json:"parent"`
-	Text      string `json:"text"`
-	Completed bool   `json:"completed"`
-	Order     string `json:"order"`
+	Parent    string   `json:"parent"`
+	Text      string   `json:"text"`
+	Completed bool     `json:"completed"`
 }
 
 func NewCreateTaskRequestFromContext(c echo.Context) (request *CreateTaskRequest, err error) {
@@ -37,12 +36,11 @@ func NewCreateTaskRequestFromContext(c echo.Context) (request *CreateTaskRequest
 }
 
 type UpdateTaskRequest struct {
-	ID        string `json:"id"`
-	Type      string `json:"type"`
-	Parent    string `json:"parent"`
-	Text      string `json:"text"`
-	Completed bool   `json:"completed"`
-	Order     string `json:"order"`
+	ID        string   `json:"id"`
+	Type      string   `json:"type"`
+	Parent    string   `json:"parent"`
+	Text      string   `json:"text"`
+	Completed bool     `json:"completed"`
 }
 
 func NewUpdateTaskRequestFromContext(c echo.Context) (request *UpdateTaskRequest, err error) {
@@ -53,6 +51,21 @@ func NewUpdateTaskRequestFromContext(c echo.Context) (request *UpdateTaskRequest
 	}
 
 	// todo sanitize html and text!!!!!!!
+
+	return request, nil
+}
+
+type UpdateTaskOrderRequest struct {
+	TaskId    string `json:"id"`
+	NewParent string `json:"newParent"`
+}
+
+func NewUpdateTaskOrderRequestFromContext(c echo.Context) (request *UpdateTaskOrderRequest, err error) {
+	request = new(UpdateTaskOrderRequest)
+	err = c.Bind(request)
+	if err != nil {
+		return nil, err
+	}
 
 	return request, nil
 }

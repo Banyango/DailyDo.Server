@@ -40,7 +40,6 @@ func InitRouter(echo *echo.Echo, db *sqlx.DB) {
 	dayController := days.NewDayController(timeService, store.Day(), authService)
 	dayTaskController := days.NewDayTaskController(timeService, store.Day(), store.Task(), authService)
 	taskController := tasks.NewTaskController(store.Task(), authService)
-	taskOrderController := tasks.NewTaskOrderController(store.Task(), authService)
 	userController := users.NewUserController(store.User(), mailService, templateService, authService)
 
 	// index
@@ -87,7 +86,5 @@ func InitRouter(echo *echo.Echo, db *sqlx.DB) {
 	restrictedGroup.DELETE("tasks/:id", taskController.DeleteTask)
 	restrictedGroup.POST("tasks/:id/summaries", taskController.CreateSummary)
 	restrictedGroup.POST("tasks/:id/subtasks", taskController.CreateSubTask)
-
-	// task order
-	restrictedGroup.POST("tasks/:id/order", taskOrderController.UpdateTaskOrder)
+	restrictedGroup.PUT("tasks/:id/order", taskController.UpdateTaskOrder)
 }

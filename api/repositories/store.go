@@ -32,6 +32,7 @@ type ITaskRepository interface {
 	GetChildrenByTaskIdAsync(id string, ctx context.Context) StoreChannel
 	GetTasksByParentAsync(id string, ctx context.Context) StoreChannel
 	GetTaskByIdAsync(id string, ctx context.Context) StoreChannel
+	GetMaxOrder(id string, ctx context.Context) StoreChannel
 	GetTaskByOrderIdAsync(parent string, id string, ctx context.Context) StoreChannel
 	Save(task model.Task, ctx context.Context) StoreResult
 	UpdateAsync(task model.Task, ctx context.Context) StoreChannel

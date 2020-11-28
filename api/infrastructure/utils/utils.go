@@ -6,6 +6,6 @@ import (
 )
 
 func LogError(err error, code int, message string) error {
-	log.Error(err)
+	log.Error(err.Error())
 	return echo.NewHTTPError(code, message)
 }

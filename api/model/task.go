@@ -12,7 +12,7 @@ type Task struct {
 	Text      null.String `json:"text" db:"text"`
 	TaskID    null.String `json:"parent" db:"task_id"`
 	Completed bool        `json:"completed" db:"completed"`
-	Order     null.String `json:"order" db:"task_order"`
+	Order     int         `json:"order" db:"task_order"`
 }
 
 //TaskQuery - task queries
@@ -22,3 +22,6 @@ type TaskQuery struct {
 	SortBy string
 	Type   string
 }
+
+//go:generate pie Tasks.*
+type Tasks []Task

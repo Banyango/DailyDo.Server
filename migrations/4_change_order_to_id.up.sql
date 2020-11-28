@@ -1,1 +1,0 @@
-alter table tasks modify task_order char(36);

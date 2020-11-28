@@ -123,7 +123,7 @@ func (self *DayController) UpdateDay(c echo.Context) (err error) {
 		return utils.LogError(result.Err, http.StatusInternalServerError, "Error deleting day")
 	}
 
-	return c.JSON(http.StatusOK, day)
+	return c.JSON(http.StatusOK, &day)
 }
 
 // @Summary Delete day.

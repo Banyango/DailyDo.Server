@@ -54,7 +54,7 @@ alter table tasks alter task_order set default 0;
 alter table tasks
     add constraint FK_TaskUsers foreign key (user_id) references users (id);
 alter table tasks
-    add constraint FK_TaskSubTasks foreign key (task_id) references tasks (id);
+    add constraint FK_TaskSubTasks foreign key (task_id) references tasks (id) on delete cascade ;
 alter table tasks
     add constraint FK_TaskDay foreign key (day_id) references days (id) on delete cascade;
 
@@ -62,5 +62,5 @@ alter table tasks
 alter table days
     add constraint FK_DayUser foreign key (user_id) references users (id);
 alter table days
-    add constraint FK_DaysParentTask foreign key (parent_task_id) references tasks (id);
+    add constraint FK_DaysParentTask foreign key (parent_task_id) references tasks (id) on delete cascade;
 

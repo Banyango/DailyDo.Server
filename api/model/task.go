@@ -10,6 +10,7 @@ type Task struct {
 	Type      string      `json:"type" db:"discriminator"`
 	UserID    string      `json:"user" db:"user_id"`
 	Text      null.String `json:"text" db:"text"`
+	DayID     null.String `json:"day" db:"day_id"`
 	TaskID    null.String `json:"parent" db:"task_id"`
 	Completed bool        `json:"completed" db:"completed"`
 	Order     int         `json:"order" db:"task_order"`

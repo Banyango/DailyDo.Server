@@ -80,8 +80,9 @@ func (self *DaySQLStore) Save(day Day) StoreResult {
 	parentTaskId := uuid.New().String()
 	day.ParentTaskID = parentTaskId
 
-	_, err = self.db.ExecContext(ctx, "INSERT INTO tasks "+
-		"(id, discriminator, user_id) values (?, ?, ?)",
+	// todo this code shouldn't be here.
+	_, err = self.db.ExecContext(ctx, `INSERT INTO tasks 
+    	(id, discriminator, user_id) values (?, ?, ?)`,
 		parentTaskId, "DayParent", day.UserID)
 	if err != nil {
 		_ = tx.Rollback()
@@ -92,6 +93,14 @@ func (self *DaySQLStore) Save(day Day) StoreResult {
 		"(id, `date`, user_id, parent_task_id, summary) "+
 		"values (?, ?, ?, ?, ?)",
 		day.ID, day.Date, day.UserID, day.ParentTaskID, day.Summary)
+	if err != nil {
+		_ = tx.Rollback()
+		return StoreResult{Err: err}
+	}
+
+	_, err = self.db.ExecContext(ctx, `UPDATE tasks t 
+    	set t.day_id = ? where t.id = ?`,
+		day.ID, day.ParentTaskID)
 	if err != nil {
 		_ = tx.Rollback()
 		return StoreResult{Err: err}

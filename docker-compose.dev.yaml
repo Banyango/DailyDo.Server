@@ -1,5 +1,16 @@
 version: '2.4'
 services:
+#  rabbitmq:
+#    image: rabbitmq:3-management
+#    hostname: my-rabbit
+#    volumes:
+#      - ./rabbitmq/etc/definitions.json:/etc/rabbitmq/definitions.json
+#      - ./rabbitmq/etc/rabbitmq.conf:/etc/rabbitmq/rabbitmq.conf
+#      - ./rabbitmq/data:/var/lib/rabbitmq/mnesia/rabbit@my-rabbit
+#      - ./rabbitmq/logs:/var/log/rabbitmq/log
+#    ports:
+#      - 5672:5672
+#      - 15672:15672
   mail:
     image: "mailhog/mailhog"
     ports:
@@ -9,17 +20,17 @@ services:
     image: "mariadb:10.5.3"
     restart: always
     networks:
-      - food-test
+      - dailydo-test
     environment:
       MYSQL_ROOT_HOST: "%"
-      MYSQL_ROOT_PASSWORD: foodtest
-      MYSQL_PASSWORD: foodtest
-      MYSQL_USER: fooduser
-      MYSQL_DATABASE: food_test
+      MYSQL_ROOT_PASSWORD: dailydotest
+      MYSQL_PASSWORD: dailydotest
+      MYSQL_USER: dailydouser
+      MYSQL_DATABASE: dailydo_test
     ports:
       - 3306:3306
     volumes:
       - ./data/:/var/lib/mysql
 networks:
-  food-test:
+  dailydo-test:
     driver: bridge

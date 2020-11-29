@@ -1,4 +1,4 @@
-# Gifoody Server
+# Gidailydoy Server
 
 Todo
 
@@ -24,7 +24,7 @@ update script there.
 To migrate you database you'll need to run the following command.
 
 ```
-migrate -path migrations/ -database "mysql://fooduser:foodtest@/food_test" up 2
+migrate -path migrations/ -database "mysql://dailydouser:dailydotest@/dailydo_test" up 2
 ```
 
 _This command will migrate the test db that spins up in docker-compose.dev_

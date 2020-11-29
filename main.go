@@ -9,6 +9,7 @@ import (
 	"github.com/labstack/echo/v4/middleware"
 	"log"
 	. "net/http"
+	"os"
 	"time"
 )
 
@@ -25,7 +26,8 @@ func main() {
 	}))
 	e.Use(middleware.AddTrailingSlash())
 
-	db, err := sqlx.Connect("mysql", "fooduser:foodtest@/food_test?parseTime=true")
+	dbConnectionString := os.Getenv("DB_CONNECTION_STRING")
+	db, err := sqlx.Connect("mysql", dbConnectionString)
 	db.SetMaxIdleConns(0)
 	db.SetConnMaxLifetime(3 * time.Second)
 	defer db.Close()

@@ -6,6 +6,6 @@ import (
 )
 
 func LogError(err error, code int, message string) error {
-	log.Error(err.Error())
+	log.Printf("Error: %s,", err.Error())
 	return echo.NewHTTPError(code, message)
 }

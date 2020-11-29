@@ -64,7 +64,7 @@ func (self *UserController) PostRegister(c echo.Context) error {
 
 	userFound := <-self.userRepository.GetUserByEmailOrUsernameAsync(user.Email, user.Username)
 	if userFound.Err == nil {
-		return utils.LogError(err, http.StatusBadRequest, "Username/Email was already used to sign up...")
+		return utils.LogError(userFound.Err, http.StatusBadRequest, "Username/Email was already used to sign up...")
 	}
 
 	hashedPassword, err := self.passwordService.HashPassword(request.Password)
@@ -218,7 +218,7 @@ func (self *UserController) PostLogin(c echo.Context) error {
 
 	userDb := <-self.userRepository.GetUserByEmailOrUsernameAsync(request.Email, "")
 	if userDb.Err != nil {
-		return utils.LogError(err, http.StatusUnauthorized, "Bad email/password")
+		return utils.LogError(userDb.Err, http.StatusUnauthorized, "Bad email/password")
 	}
 
 	fetchedUser := userDb.Data.(User)

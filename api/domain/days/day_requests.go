@@ -36,3 +36,13 @@ func NewUpdateDayRequestFromContext(c echo.Context) (request *UpdateDayRequest, 
 
 	return request, nil
 }
+
+type DuplicateDayRequest struct {
+	id string
+}
+
+func NewDuplicateDayRequestFromContext(c echo.Context) (request *DuplicateDayRequest, err error) {
+	request = new(DuplicateDayRequest)
+	request.id = c.Param("id")
+	return request, nil
+}

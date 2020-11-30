@@ -70,11 +70,13 @@ func InitRouter(echo *echo.Echo, db *sqlx.DB) {
 
 	// days
 	restrictedGroup.GET("days", dayController.ListDays, pagination.Paginate())
-	restrictedGroup.POST("days", dayController.CreateDay)
-	restrictedGroup.PUT("days/:id", dayController.UpdateDay)
-	restrictedGroup.DELETE("days/:id", dayController.DeleteDay)
 	restrictedGroup.GET("days/:id/tasks", dayTaskController.ListTasksForDay)
+	restrictedGroup.PUT("days/:id", dayController.UpdateDay)
+
+	restrictedGroup.POST("days", dayController.CreateDay)
 	restrictedGroup.POST("days/:id/duplicate", dayDuplicateController.DuplicateDay)
+
+	restrictedGroup.DELETE("days/:id", dayController.DeleteDay)
 
 	// tasks
 	restrictedGroup.GET("tasks", taskController.ListTask, pagination.Paginate())
@@ -82,11 +84,12 @@ func InitRouter(echo *echo.Echo, db *sqlx.DB) {
 	restrictedGroup.GET("tasks/:id/tasks", taskController.ListTasks)
 	restrictedGroup.GET("tasks/:id/items", taskController.ListItems, pagination.Paginate())
 
-	// todo need task_id on body
-	restrictedGroup.POST("tasks", taskController.CreateTask)
 	restrictedGroup.PUT("tasks/:id", taskController.UpdateTask)
-	restrictedGroup.DELETE("tasks/:id", taskController.DeleteTask)
+	restrictedGroup.PUT("tasks/:id/order", taskController.UpdateTaskOrder)
+
+	restrictedGroup.POST("tasks", taskController.CreateTask)
 	restrictedGroup.POST("tasks/:id/summaries", taskController.CreateSummary)
 	restrictedGroup.POST("tasks/:id/subtasks", taskController.CreateSubTask)
-	restrictedGroup.PUT("tasks/:id/order", taskController.UpdateTaskOrder)
+
+	restrictedGroup.DELETE("tasks/:id", taskController.DeleteTask)
 }

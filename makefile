@@ -4,15 +4,18 @@ clean:
 mk-dist:
 	@ mkdir dist
 
+mk-prd:
+	@ mkdir dist/prd
+
 build: clean mk-dist
 	@ go build -o ./dist/gifoody .
+
+release: clean mk-prd
+    @ GOOS=linux GOARCH=amd64 go build -o ./dist/prd/
 
 run: build
 	@ docker-compose up -d
 	@ ZIPKIN="localhost:9411" MONGODB="mongodb://localhost:27017/users" ./dist/Auth
-
-generate:
-    @ go generate
 
 mocks:
 	GO111MODULE=off go get -u github.com/vektra/mockery/.../

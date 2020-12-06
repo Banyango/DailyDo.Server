@@ -47,7 +47,8 @@ func InitRouter(echo *echo.Echo, db *sqlx.DB) {
 	mainGroup.GET("index", indexController.GetIndex)
 
 	// users
-	mainGroup.POST("register", userController.PostRegister)
+	// todo for now dont allow registration.
+	//mainGroup.POST("register", userController.PostRegister)
 	mainGroup.POST("reset_password", userController.PostResetPassword)
 	mainGroup.POST("confirm_reset_password", userController.PostConfirmResetPassword)
 	mainGroup.POST("confirm_account", userController.PostConfirmAccount)

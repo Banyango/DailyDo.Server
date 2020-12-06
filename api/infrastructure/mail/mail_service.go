@@ -19,6 +19,8 @@ type MailService struct {
 
 func NewMailService() *MailService {
 
+	return nil
+
 	smtpAddr := os.Getenv("SMTP_ADDR")
 	smtpServerName := os.Getenv("SMTP_SERVER_NAME")
 	c, err := smtp.Dial(smtpAddr)

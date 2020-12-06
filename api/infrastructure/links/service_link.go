@@ -42,7 +42,7 @@ func ParseRequest(ctx echo.Context) (host string, scheme string) {
 }
 
 func ValidateHost(host string) error {
-	if !strings.Contains(host, "api.gifoody.com") && !strings.Contains(host, "localhost") {
+	if !strings.Contains(host, "159.203.18.62") && !strings.Contains(host, "api.gifoody.com") && !strings.Contains(host, "localhost") {
 		return fmt.Errorf("Bad Request")
 	}
 	return nil

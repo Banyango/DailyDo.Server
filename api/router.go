@@ -1,17 +1,17 @@
 package api
 
 import (
-	"github.com/Banyango/gifoody_server/api/domain/days"
-	"github.com/Banyango/gifoody_server/api/domain/index"
-	"github.com/Banyango/gifoody_server/api/domain/tasks"
-	"github.com/Banyango/gifoody_server/api/domain/users"
-	"github.com/Banyango/gifoody_server/api/infrastructure/mail"
-	"github.com/Banyango/gifoody_server/api/infrastructure/os"
-	"github.com/Banyango/gifoody_server/api/infrastructure/pagination"
-	"github.com/Banyango/gifoody_server/api/infrastructure/template"
-	"github.com/Banyango/gifoody_server/api/infrastructure/time"
-	"github.com/Banyango/gifoody_server/api/repositories"
-	"github.com/Banyango/gifoody_server/constants"
+	"github.com/Banyango/dailydo_server/api/domain/days"
+	"github.com/Banyango/dailydo_server/api/domain/index"
+	"github.com/Banyango/dailydo_server/api/domain/tasks"
+	"github.com/Banyango/dailydo_server/api/domain/users"
+	"github.com/Banyango/dailydo_server/api/infrastructure/mail"
+	"github.com/Banyango/dailydo_server/api/infrastructure/os"
+	"github.com/Banyango/dailydo_server/api/infrastructure/pagination"
+	"github.com/Banyango/dailydo_server/api/infrastructure/template"
+	"github.com/Banyango/dailydo_server/api/infrastructure/time"
+	"github.com/Banyango/dailydo_server/api/repositories"
+	"github.com/Banyango/dailydo_server/constants"
 	"github.com/jmoiron/sqlx"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
@@ -19,7 +19,7 @@ import (
 )
 
 var (
-	Unauthorized = echo.NewHTTPError(http.StatusUnauthorized, "Unauthorized")
+	Unauthorized = echo.NewHTTPError(http.StatusUnauthorized, nil)
 )
 
 func InitRouter(echo *echo.Echo, db *sqlx.DB) {

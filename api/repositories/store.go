@@ -2,9 +2,9 @@ package repositories
 
 import (
 	"context"
-	"github.com/Banyango/gifoody_server/api/model"
-	"github.com/Banyango/gifoody_server/api/repositories/stores"
-	. "github.com/Banyango/gifoody_server/api/repositories/util"
+	"github.com/Banyango/dailydo_server/api/model"
+	"github.com/Banyango/dailydo_server/api/repositories/stores"
+	. "github.com/Banyango/dailydo_server/api/repositories/util"
 	"github.com/jmoiron/sqlx"
 )
 

@@ -1,7 +1,7 @@
 package main
 
 import (
-	"github.com/Banyango/gifoody_server/api"
+	"github.com/Banyango/dailydo_server/api"
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/jmoiron/sqlx"
 	"github.com/joho/godotenv"
@@ -17,8 +17,9 @@ func main() {
 
 	err := godotenv.Load()
 	if err != nil {
-		log.Fatal("Error loading .env file")
+		log.Print("Error loading .env file")
 	}
+
 	e := echo.New()
 
 	e.Use(middleware.LoggerWithConfig(middleware.LoggerConfig{
@@ -28,18 +29,28 @@ func main() {
 
 	dbConnectionString := os.Getenv("DB_CONNECTION_STRING")
 	db, err := sqlx.Connect("mysql", dbConnectionString)
-	db.SetMaxIdleConns(0)
-	db.SetConnMaxLifetime(3 * time.Second)
-	defer db.Close()
 
 	if err != nil {
 		panic(err)
 	}
 
-	e.Use(middleware.CORSWithConfig(middleware.CORSConfig{
-		AllowOrigins: []string{"http://api.gifoody.com", "http://localhost:3000"},
+	db.SetMaxIdleConns(0)
+	db.SetConnMaxLifetime(3 * time.Second)
+
+	defer db.Close()
+
+	_, isDevExists := os.LookupEnv("DEV")
+
+	config := middleware.CORSConfig{
+		AllowOrigins: []string{"https://192.168.1.79"},
 		AllowMethods: []string{MethodGet, MethodPut, MethodPost, MethodDelete, MethodOptions},
-	}))
+	}
+
+	if isDevExists {
+		config.AllowOrigins = []string{"http://localhost:3000"}
+	}
+
+	e.Use(middleware.CORSWithConfig(config))
 
 	api.InitRouter(e, db)
 

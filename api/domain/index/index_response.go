@@ -1,8 +1,8 @@
 package index
 
 import (
-	"github.com/Banyango/gifoody_server/api/infrastructure/links"
-	"github.com/Banyango/gifoody_server/api/model"
+	"github.com/Banyango/dailydo_server/api/infrastructure/links"
+	"github.com/Banyango/dailydo_server/api/model"
 	"github.com/labstack/echo/v4"
 )
 

@@ -3,8 +3,8 @@ package stores
 import (
 	"context"
 	"fmt"
-	. "github.com/Banyango/gifoody_server/api/model"
-	. "github.com/Banyango/gifoody_server/api/repositories/util"
+	. "github.com/Banyango/dailydo_server/api/model"
+	. "github.com/Banyango/dailydo_server/api/repositories/util"
 	"github.com/google/uuid"
 	"github.com/jmoiron/sqlx"
 )

@@ -2,7 +2,7 @@ package pagination
 
 import (
 	"fmt"
-	"github.com/Banyango/gifoody_server/api/model"
+	"github.com/Banyango/dailydo_server/api/model"
 	"github.com/labstack/echo/v4"
 	"net/http"
 	"strconv"

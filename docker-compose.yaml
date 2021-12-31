@@ -12,7 +12,7 @@ services:
       MYSQL_USER: fooduser
       MYSQL_DATABASE: food_test
     ports:
-      - 3306:3306
+      - 25821:3306
     volumes:
       - ./data/:/var/lib/mysql
 networks:

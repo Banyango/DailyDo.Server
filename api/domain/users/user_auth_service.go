@@ -2,8 +2,8 @@ package users
 
 import (
 	"fmt"
-	"github.com/Banyango/gifoody_server/api/model"
-	"github.com/Banyango/gifoody_server/api/repositories"
+	"github.com/Banyango/dailydo_server/api/model"
+	"github.com/Banyango/dailydo_server/api/repositories"
 	"github.com/dgrijalva/jwt-go"
 	"github.com/labstack/echo/v4"
 )

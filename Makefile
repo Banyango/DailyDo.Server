@@ -1,17 +1,19 @@
 clean:
-	@ rm -rd ./dist || true
+	rm -rd ./dist || true
 
 mk-dist:
-	@ mkdir dist
-
-mk-prd:
-	@ mkdir dist/prd
+	mkdir dist
 
 build: clean mk-dist
-	@ go build -o ./dist/gifoody .
+	go build -o ./dist/dailydo .
 
-release: clean mk-prd
-    @ GOOS=linux GOARCH=amd64 go build -o ./dist/prd/
+build-prod:
+	GOOS="linux" GOARCH="amd64" go build -o ./dist/dailydo .
+
+publish:
+	docker build -t dailydo-server:latest -f ./Dockerfile .
+
+release: clean mk-dist build-prod publish
 
 run: build
 	@ docker-compose up -d

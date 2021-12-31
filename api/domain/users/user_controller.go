@@ -1,11 +1,11 @@
 package users
 
 import (
-	"github.com/Banyango/gifoody_server/api/infrastructure/mail"
-	"github.com/Banyango/gifoody_server/api/infrastructure/template"
-	"github.com/Banyango/gifoody_server/api/infrastructure/utils"
-	. "github.com/Banyango/gifoody_server/api/model"
-	"github.com/Banyango/gifoody_server/api/repositories"
+	"github.com/Banyango/dailydo_server/api/infrastructure/mail"
+	"github.com/Banyango/dailydo_server/api/infrastructure/template"
+	"github.com/Banyango/dailydo_server/api/infrastructure/utils"
+	. "github.com/Banyango/dailydo_server/api/model"
+	"github.com/Banyango/dailydo_server/api/repositories"
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 	"net/http"
@@ -295,5 +295,6 @@ func (self *UserController) GetMe(c echo.Context) error {
 
 	// user wasn't found expire token.
 	self.jwtService.ExpireTokenImmediately(c)
-	return c.JSON(http.StatusUnauthorized, nil)
+	c.Response().Status = http.StatusUnauthorized
+	return nil
 }

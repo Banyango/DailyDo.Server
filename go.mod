@@ -1,8 +1,8 @@
-module github.com/Banyango/gifoody_server
+module github.com/Banyango/dailydo_server
 
 go 1.14
 
-replace github.com/Banyango/gifoody_server/ => ./
+replace github.com/Banyango/dailydo_server/ => ./
 
 require (
 	github.com/davecgh/go-spew v1.1.1 // indirect

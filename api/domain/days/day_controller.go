@@ -2,12 +2,12 @@ package days
 
 import (
 	"fmt"
-	"github.com/Banyango/gifoody_server/api/domain/users"
-	"github.com/Banyango/gifoody_server/api/infrastructure/pagination"
-	"github.com/Banyango/gifoody_server/api/infrastructure/time"
-	"github.com/Banyango/gifoody_server/api/infrastructure/utils"
-	"github.com/Banyango/gifoody_server/api/model"
-	"github.com/Banyango/gifoody_server/api/repositories"
+	"github.com/Banyango/dailydo_server/api/domain/users"
+	"github.com/Banyango/dailydo_server/api/infrastructure/pagination"
+	"github.com/Banyango/dailydo_server/api/infrastructure/time"
+	"github.com/Banyango/dailydo_server/api/infrastructure/utils"
+	"github.com/Banyango/dailydo_server/api/model"
+	"github.com/Banyango/dailydo_server/api/repositories"
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 	"gopkg.in/guregu/null.v4"

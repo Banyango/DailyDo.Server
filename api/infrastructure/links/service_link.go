@@ -2,8 +2,8 @@ package links
 
 import (
 	"fmt"
-	"github.com/Banyango/gifoody_server/api/model"
-	"github.com/Banyango/gifoody_server/constants"
+	"github.com/Banyango/dailydo_server/api/model"
+	"github.com/Banyango/dailydo_server/constants"
 	"github.com/labstack/echo/v4"
 	url2 "net/url"
 	"os"
@@ -42,7 +42,7 @@ func ParseRequest(ctx echo.Context) (host string, scheme string) {
 }
 
 func ValidateHost(host string) error {
-	if !strings.Contains(host, "159.203.18.62") && !strings.Contains(host, "api.gifoody.com") && !strings.Contains(host, "localhost") {
+	if !strings.Contains(host, "192.168.1.79") && !strings.Contains(host, "localhost") {
 		return fmt.Errorf("Bad Request")
 	}
 	return nil

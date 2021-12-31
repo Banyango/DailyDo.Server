@@ -1,7 +1,7 @@
 package stores
 
 import (
-	"github.com/Banyango/gifoody_server/api/model"
+	"github.com/Banyango/dailydo_server/api/model"
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/google/uuid"
 	"github.com/jmoiron/sqlx"

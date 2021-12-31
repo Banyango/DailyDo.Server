@@ -1,7 +1,7 @@
 package template
 
 import (
-	. "github.com/Banyango/gifoody_server/api/infrastructure/os"
+	. "github.com/Banyango/dailydo_server/api/infrastructure/os"
 	"html/template"
 	"io"
 )
